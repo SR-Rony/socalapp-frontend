@@ -59,14 +59,14 @@ const menu = [
   },
 ];
 
-export default function Sidebar() {
+export default function System() {
   const pathname = usePathname();
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col  bg-white rounded-xl shadow p-4">
       {/* Logo */}
-      <div className="mb-6 text-xl font-bold">
-        Social<span className="text-primary">Board</span>
+      <div className="mb-6  font-bold">
+        <span>SYSTEM</span>
       </div>
 
       <nav className="space-y-1">
@@ -81,14 +81,14 @@ export default function Sidebar() {
               <Link
                 key={item.title}
                 href={item.href!}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition cursor-pointer
                   ${
                     active
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-secondary"
                       : "text-muted-foreground hover:bg-muted"
                   }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4 text-primary" />
                 {item.title}
               </Link>
             );
@@ -110,7 +110,7 @@ export default function Sidebar() {
                   }`}
               >
                 <span className="flex items-center gap-3">
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-4 w-4 text-primary" />
                   {item.title}
                 </span>
                 <ChevronDown className="h-4 w-4" />
@@ -119,7 +119,7 @@ export default function Sidebar() {
               <CollapsibleContent className="mt-1 space-y-1 pl-9">
                 {item.children.map((child) => {
                   const active = pathname === child.href;
-                  const ChildIcon = child.icon;
+                  // const ChildIcon = child;
 
                   return (
                     <Link
@@ -132,9 +132,9 @@ export default function Sidebar() {
                             : "text-muted-foreground hover:bg-muted"
                         }`}
                     >
-                      {ChildIcon && (
+                      {/* {ChildIcon && (
                         <ChildIcon className="h-3.5 w-3.5" />
-                      )}
+                      )} */}
                       {child.title}
                     </Link>
                   );

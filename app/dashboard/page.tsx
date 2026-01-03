@@ -1,14 +1,12 @@
 import CoustomarChart from "@/components/dashboard/coustomarChart";
+import InfoCards from "@/components/dashboard/projectinfo/InfoCards";
 
 const page = () => {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4 bg-gray-300 py-2">
-        Dashboard Overview
-      </h1>
-
       <main>
         <CoustomarChart/>
+        <InfoCards/>
       </main>
     </div>
   );
