@@ -1,11 +1,11 @@
-import CoustomarChart from "@/components/dashboard/coustomarChart";
+import DashboardChart from "@/components/dashboard/coustomarChart";
 import InfoCards from "@/components/dashboard/projectinfo/InfoCards";
 
 const page = () => {
   return (
     <div>
       <main>
-        <CoustomarChart/>
+        <DashboardChart/>
         <InfoCards/>
       </main>
     </div>

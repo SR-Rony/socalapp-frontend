@@ -21,11 +21,19 @@ import {
 
 const menu = [
   {
-    title: "Users",
+    title: "Earnings",
     icon: BarChart3,
     children: [
-      { title: "User List", href: "/dashboard/users/list" },
-      { title: "User Groups", href: "/dashboard/users/groups" },
+      { title: "Payments", href: "/dashboard/earnings/payments" },
+      { title: "Commissions", href: "/dashboard/money/commissions" },
+    ],
+  },
+  {
+    title: "Ads",
+    icon: BarChart3,
+    children: [
+      { title: "Ads Settings", href: "/dashboard/ads/ads_settings" },
+      { title: "Lists User Ads", href: "/dashboard/ads/user_ads" },
     ],
   },
   {
@@ -67,14 +75,14 @@ const menu = [
   },
 ];
 
-export default function UserMenu() {
+export default function Money() {
   const pathname = usePathname();
 
   return (
     <div className="flex h-full flex-col bg-white rounded-xl shadow p-4 mt-5">
       {/* Logo */}
       <div className="mb-6  font-bold">
-        <span>USER</span>
+        <span>MONEY</span>
       </div>
 
       <nav className="space-y-1">
@@ -136,7 +144,7 @@ export default function UserMenu() {
                       className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
                         ${
                           active
-                            ? "bg-primary text-primary-foreground"
+                            ? "bg-secondary"
                             : "text-muted-foreground hover:bg-muted"
                         }`}
                     >
