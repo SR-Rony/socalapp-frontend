@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
-  LayoutDashboard,
   BarChart3,
   Users,
   Settings,
@@ -38,7 +37,6 @@ const menu: MenuItem[] = [
     icon: BarChart3,
     children: [
       { title: "Payments", href: "/dashboard/earnings/payments" },
-      { title: "Commissions", href: "/dashboard/money/commissions" },
     ],
   },
   {
@@ -62,29 +60,36 @@ const menu: MenuItem[] = [
     icon: BarChart3,
     children: [
       { title: "Affiliates Settings", href: "/dashboard/affiliates/setting" },
-      { title: "Reports", href: "/dashboard/analytics/reports" },
+      { title: "Payments", href: "/dashboard/affiliates/payments" },
     ],
   },
   {
-    title: "Users",
+    title: "Marketplace",
     icon: Users,
     children: [
-      { title: "All Users", href: "/dashboard/users" },
-      { title: "Roles", href: "/dashboard/users/roles" },
+      { title: "Market Settings", href: "/dashboard/market/setting" },
     ],
   },
   {
-    title: "Settings",
+    title: "Monietization",
+    icon: Users,
+    children: [
+      { title: "Monietization Settings", href: "/dashboard/monietization/setting" },
+      { title: "Payments Request", href: "/dashboard/monietization/payment" },
+    ],
+  },
+  {
+    title: "Points System",
     icon: Settings,
     children: [
       {
-        title: "Profile",
-        href: "/dashboard/settings/profile",
+        title: "Points Settings",
+        href: "/dashboard/points/setting",
         icon: User,
       },
       {
-        title: "Security",
-        href: "/dashboard/settings/security",
+        title: "Payments Requests",
+        href: "/dashboard/points/payments",
         icon: Shield,
       },
     ],

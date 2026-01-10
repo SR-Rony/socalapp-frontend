@@ -25,12 +25,11 @@ const menu = [
     icon: BarChart3,
     children: [
       { title: "User List", href: "/dashboard/users/list" },
-      { title: "User Groups", href: "/dashboard/users/groups" },
     ],
   },
   {
     title: "User Groups",
-    href: "/groups",
+    href: "/dashboard/user_groups",
     icon: LayoutDashboard,
   },
   {
