@@ -47,11 +47,6 @@ const menu: MenuItem[] = [
         href: "/dashboard/posts/list",
         icon: User,
       },
-      {
-        title: "List Pending Posts",
-        href: "/dashboard/posts/pending",
-        icon: Shield,
-      },
     ],
   },
   {
@@ -60,44 +55,14 @@ const menu: MenuItem[] = [
     children: [
       {
         title: "List Groups",
-        href: "/dashboard/groups",
+        href: "/dashboard/user_groups",
         icon: User,
       },
-      {
-        title: "List Categories",
-        href: "/dashboard/groups/categories",
-        icon: Shield,
-      },
-    ],
-  },
-  {
-    title: "Users",
-    icon: Users,
-    children: [
-      {
-        title: "All Users",
-        href: "/dashboard/users",
-      },
-      {
-        title: "Roles",
-        href: "/dashboard/users/roles",
-      },
-    ],
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    children: [
-      {
-        title: "Profile",
-        href: "/dashboard/settings/profile",
-        icon: User,
-      },
-      {
-        title: "Security",
-        href: "/dashboard/settings/security",
-        icon: Shield,
-      },
+      // {
+      //   title: "List Categories",
+      //   href: "/dashboard/groups/categories",
+      //   icon: Shield,
+      // },
     ],
   },
 ];

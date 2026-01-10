@@ -5,12 +5,11 @@ import { usePathname } from "next/navigation";
 
 import {
   LayoutDashboard,
-  BarChart3,
   Users,
-  Settings,
   ChevronDown,
-  User,
-  Shield,
+  List,
+  ShieldCheck,
+  UsersRound,
 } from "lucide-react";
 
 import {
@@ -22,48 +21,43 @@ import {
 const menu = [
   {
     title: "Users",
-    icon: BarChart3,
+    icon: Users, // Users → multiple people
     children: [
-      { title: "User List", href: "/dashboard/users/list" },
+      {
+        title: "User List",
+        href: "/dashboard/users/list",
+        icon: List, // list view
+      },
     ],
   },
+
   {
     title: "User Groups",
     href: "/dashboard/user_groups",
-    icon: LayoutDashboard,
+    icon: UsersRound, // group of users
   },
   {
-    title: "Analytics",
-    icon: BarChart3,
-    children: [
-      { title: "Overview", href: "/dashboard/analytics" },
-      { title: "Reports", href: "/dashboard/analytics/reports" },
-    ],
+    title: "Permissions Groups",
+    href: "/dashboard/user_groups",
+    icon: UsersRound, // group of users
   },
-  {
-    title: "Users",
-    icon: Users,
-    children: [
-      { title: "All Users", href: "/dashboard/users" },
-      { title: "Roles", href: "/dashboard/users/roles" },
-    ],
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    children: [
-      {
-        title: "Profile",
-        href: "/dashboard/settings/profile",
-        icon: User,
-      },
-      {
-        title: "Security",
-        href: "/dashboard/settings/security",
-        icon: Shield,
-      },
-    ],
-  },
+
+  // {
+  //   title: "Permissions Groups",
+  //   icon: ShieldCheck, // permissions/security
+  //   children: [
+  //     {
+  //       title: "Overview",
+  //       href: "/dashboard/analytics",
+  //       icon: LayoutDashboard,
+  //     },
+  //     {
+  //       title: "Reports",
+  //       href: "/dashboard/analytics/reports",
+  //       icon: List,
+  //     },
+  //   ],
+  // },
 ];
 
 export default function UserMenu() {

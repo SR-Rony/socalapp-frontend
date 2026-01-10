@@ -5,11 +5,16 @@ import { usePathname } from "next/navigation";
 
 import {
   BarChart3,
+  Wallet,
+  Megaphone,
   Users,
+  Store,
+  DollarSign,
+  Coins,
   Settings,
+  CreditCard,
+  List,
   ChevronDown,
-  User,
-  Shield,
 } from "lucide-react";
 
 import {
@@ -34,63 +39,104 @@ type MenuItem = {
 const menu: MenuItem[] = [
   {
     title: "Earnings",
-    icon: BarChart3,
+    icon: BarChart3, // Earnings → Chart
     children: [
-      { title: "Payments", href: "/dashboard/earnings/payments" },
+      {
+        title: "Payments",
+        href: "/dashboard/earnings/payments",
+        icon: CreditCard,
+      },
     ],
   },
+
   {
     title: "Ads",
-    icon: BarChart3,
+    icon: Megaphone, // Ads → Promotion
     children: [
-      { title: "Ads Settings", href: "/dashboard/ads/ads_settings" },
-      { title: "Lists User Ads", href: "/dashboard/ads/user_ads" },
+      {
+        title: "Ads Settings",
+        href: "/dashboard/ads/ads_settings",
+        icon: Settings,
+      },
+      {
+        title: "Lists User Ads",
+        href: "/dashboard/ads/user_ads",
+        icon: List,
+      },
     ],
   },
+
   {
     title: "Wallet",
-    icon: BarChart3,
+    icon: Wallet, // Wallet
     children: [
-      { title: "Wallet Settings", href: "/dashboard/wallet/setting" },
-      { title: "Lists User Ads", href: "/dashboard/ads/user_ads" },
+      {
+        title: "Wallet Settings",
+        href: "/dashboard/wallet/setting",
+        icon: Settings,
+      },
     ],
   },
+
   {
     title: "Affiliates",
-    icon: BarChart3,
+    icon: Users, // Affiliates → Users
     children: [
-      { title: "Affiliates Settings", href: "/dashboard/affiliates/setting" },
-      { title: "Payments", href: "/dashboard/affiliates/payments" },
+      {
+        title: "Affiliates Settings",
+        href: "/dashboard/affiliates/setting",
+        icon: Settings,
+      },
+      {
+        title: "Payments",
+        href: "/dashboard/affiliates/payments",
+        icon: DollarSign,
+      },
     ],
   },
+
   {
     title: "Marketplace",
-    icon: Users,
+    icon: Store, // Marketplace → Store
     children: [
-      { title: "Market Settings", href: "/dashboard/market/setting" },
+      {
+        title: "Market Settings",
+        href: "/dashboard/market/setting",
+        icon: Settings,
+      },
     ],
   },
+
   {
-    title: "Monietization",
-    icon: Users,
+    title: "Monetization",
+    icon: DollarSign, // Monetization → Money
     children: [
-      { title: "Monietization Settings", href: "/dashboard/monietization/setting" },
-      { title: "Payments Request", href: "/dashboard/monietization/payment" },
+      {
+        title: "Monetization Settings",
+        href: "/dashboard/monietization/setting",
+        icon: Settings,
+      },
+      {
+        title: "Payments Request",
+        href: "/dashboard/monietization/payment",
+        icon: CreditCard,
+      },
     ],
   },
+
   {
     title: "Points System",
-    icon: Settings,
+    icon: Coins, // Points → Coins
     children: [
       {
         title: "Points Settings",
         href: "/dashboard/points/setting",
-        icon: User,
+        icon: Settings,
       },
       {
         title: "Payments Requests",
         href: "/dashboard/points/payments",
-        icon: Shield,
+        icon: CreditCard,
       },
     ],
   },

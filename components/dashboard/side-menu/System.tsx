@@ -29,32 +29,8 @@ const menu = [
     title: "Analytics",
     icon: BarChart3,
     children: [
-      { title: "Overview", href: "/dashboard/analytics" },
-      { title: "Reports", href: "/dashboard/analytics/reports" },
-    ],
-  },
-  {
-    title: "Users",
-    icon: Users,
-    children: [
-      { title: "All Users", href: "/dashboard/users" },
-      { title: "Roles", href: "/dashboard/users/roles" },
-    ],
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    children: [
-      {
-        title: "Profile",
-        href: "/dashboard/settings/profile",
-        icon: User,
-      },
-      {
-        title: "Security",
-        href: "/dashboard/settings/security",
-        icon: Shield,
-      },
+      { title: "Overview", href: "#" },
+      { title: "Reports", href: "#" },
     ],
   },
 ];
