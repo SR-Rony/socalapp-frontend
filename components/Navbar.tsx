@@ -2,85 +2,93 @@
 "use client";
 
 import Link from "next/link";
-import { FaFacebookF,FaYoutube } from "react-icons/fa";
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import {
+  Search,
+  Plus,
+  MessageCircle,
+  Users,
+  Bell,
+  ChevronDown,
+} from "lucide-react";
 
-const menuItems = [
-  { name: "Fetur", href: "/" },
-  { name: "Pricing", href: "/explore" },
-  { name: "Demo", href: "/messages" },
-  { name: "Docs", href: "/profile" },
-  { name: "Block", href: "/profile" },
-  { name: "Contact", href: "/profile" },
-];
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Navbar() {
-  const [open, setOpen] = useState(false);
-
   return (
-    <nav className="w-full border-b bg-white dark:bg-background py-1.5 shadow-sm sticky top-0 z-50">
-      <div className="mx-auto container-fluid px-4">
-        <div className="flex h-16 items-center justify-between">
-          
-          {/* ================= Left Side ================= */}
-          <div className="flex items-center gap-4">
-            {/* Logo */}
+    <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-background">
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center">
+
+          {/* ========== LEFT: Logo ========== */}
+          <div className="flex-1">
             <Link href="/" className="text-xl font-bold text-primary">
               SocialApp
             </Link>
+          </div>
 
-            {/* Social Icons */}
-            <div className="hidden sm:flex items-center gap-3 text-muted-foreground">
-              <div className="w-10 h-10 bg-secondary rounded-full flex justify-center items-center"><FaFacebookF className="h-5 w-5 cursor-pointer text-primary transition" /></div>
-              <div className="w-10 h-10 bg-secondary rounded-full flex justify-center items-center"><FaYoutube className="h-5 w-5 cursor-pointer text-primary transition" /></div>
+          {/* ========== CENTER: Search (md+) ========== */}
+          <div className="hidden md:flex flex-1 justify-center">
+            <div className="relative  w-full ">
+              <Input
+                placeholder="Search..."
+                className="w-full h-10 sm:h-10 pl-4 pr-10"
+              />
+              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             </div>
           </div>
 
-          {/* ================= Right Side (Desktop) ================= */}
-          <div className="hidden md:flex items-center gap-10">
-            {menuItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-base font-medium hover:text-primary transition"
-              >
-                {item.name}
-              </Link>
-            ))}
+          {/* ========== RIGHT: Icons & Profile ========== */}
+          <div className="flex-1 flex justify-end items-center gap-3">
 
-            <Button className="p-5">Buy</Button>
+            <Button size="icon" variant="ghost">
+              <Plus className="h-5 w-5" />
+            </Button>
+
+            <Button size="icon" variant="ghost">
+              <MessageCircle className="h-5 w-5" />
+            </Button>
+
+            <Button size="icon" variant="ghost">
+              <Users className="h-5 w-5" />
+            </Button>
+
+            <Button size="icon" variant="ghost">
+              <Bell className="h-5 w-5" />
+            </Button>
+
+            {/* Profile Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src="/avatar.png" />
+                  <AvatarFallback>SR</AvatarFallback>
+                </Avatar>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem className="font-medium">Demo Admin</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin">Admin Panel</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-500">Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
           </div>
-
-          {/* ================= Mobile Menu Button ================= */}
-          <button
-            className="md:hidden"
-            onClick={() => setOpen(!open)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
         </div>
-
-        {/* ================= Mobile Menu ================= */}
-        {open && (
-          <div className="md:hidden pb-4">
-            <div className="flex flex-col gap-3">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className=" px-2 py-2 text-sm font-medium hover:bg-primary"
-                  onClick={() => setOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-
-              <Button className="mt-2 w-full font-bold ">Buy</Button>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );
