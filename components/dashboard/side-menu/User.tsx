@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
-  LayoutDashboard,
   Users,
   ChevronDown,
   List,
-  ShieldCheck,
   UsersRound,
+  ShieldCheck,
+  LayoutDashboard,
+  LucideIcon,
 } from "lucide-react";
 
 import {
@@ -18,47 +19,54 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-const menu = [
+type MenuItem =
+  | {
+      title: string;
+      icon: LucideIcon;
+      href: string;
+      children?: never;
+    }
+  | {
+      title: string;
+      icon: LucideIcon;
+      children: {
+        title: string;
+        href: string;
+        icon?: LucideIcon;
+      }[];
+      href?: never;
+    };
+
+const menu: MenuItem[] = [
   {
     title: "Users",
-    icon: Users, // Users → multiple people
+    icon: Users,
     children: [
       {
         title: "User List",
         href: "/dashboard/users/list",
-        icon: List, // list view
+        icon: List,
       },
     ],
   },
-
-  {
-    title: "User Groups",
-    href: "/dashboard/user_groups",
-    icon: UsersRound, // group of users
-  },
   {
     title: "Permissions Groups",
-    href: "/dashboard/user_groups",
-    icon: UsersRound, // group of users
+    icon: ShieldCheck,
+    children: [
+      {
+        title: "Monetization",
+        href: "/dashboard/users/group_parmission/monetization",
+        icon: LayoutDashboard,
+      },
+      {
+        title: "Sales Reports",
+        href: "/dashboard/users/group_parmission/sales",
+        icon: List,
+      },
+    ],
   },
-
-  // {
-  //   title: "Permissions Groups",
-  //   icon: ShieldCheck, // permissions/security
-  //   children: [
-  //     {
-  //       title: "Overview",
-  //       href: "/dashboard/analytics",
-  //       icon: LayoutDashboard,
-  //     },
-  //     {
-  //       title: "Reports",
-  //       href: "/dashboard/analytics/reports",
-  //       icon: List,
-  //     },
-  //   ],
-  // },
 ];
+
 
 export default function UserMenu() {
   const pathname = usePathname();
@@ -106,7 +114,7 @@ export default function UserMenu() {
                 className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition
                   ${
                     isChildActive
-                      ? "bg-muted"
+                      ? "bg-secondary"
                       : "text-muted-foreground hover:bg-muted"
                   }`}
               >
@@ -129,7 +137,7 @@ export default function UserMenu() {
                       className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
                         ${
                           active
-                            ? "bg-primary text-primary-foreground"
+                            ? "bg-secondary"
                             : "text-muted-foreground hover:bg-muted"
                         }`}
                     >
