@@ -9,6 +9,7 @@ import {
   Bell,
   ChevronDown,
   CirclePlus,
+  Menu,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -22,16 +23,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+
+import Sidebar from "@/components/sidebar/Sidebar";
+
 import { useAppSelector, useAppDispatch } from "@/redux/hook/hook";
 import { logout } from "@/redux/features/authSlice";
+import { toast } from "sonner";
 
 export default function Navbar() {
   const { user } = useAppSelector((state: any) => state.auth);
   const dispatch = useAppDispatch();
   const router = useRouter();
-
-  console.log("user",user);
-  
 
   // =============================
   // Safe username (first 2 words)
@@ -48,22 +55,52 @@ export default function Navbar() {
   // =============================
   const handleLogout = () => {
     dispatch(logout());
-    router.push("/login"); // or "/"
+    toast.success("You’re logged out. See you again soon!");
+    router.push("/login");
   };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-background">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center">
+        <div className="flex h-16 items-center gap-2">
 
-          {/* LEFT: Logo */}
-          <div className="flex-1">
+          {/* =============================
+              LEFT: Mobile Menu + Logo
+          ============================= */}
+          <div className="flex items-center gap-2 flex-1">
+
+            {/* 🔥 Mobile Sidebar Trigger */}
+            <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button size="icon" variant="ghost">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+
+                <SheetContent side="left" className="w-72 p-0">
+                  <div className="flex h-full flex-col">
+                    <div className="border-b px-4 py-3 font-bold">
+                      SocialApp
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto px-2">
+                      <Sidebar />
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            {/* Logo */}
             <Link href="/" className="text-xl font-bold text-primary">
               SocialApp
             </Link>
           </div>
 
-          {/* CENTER: Search */}
+          {/* =============================
+              CENTER: Search (Desktop only)
+          ============================= */}
           <div className="hidden md:flex flex-1 justify-center">
             <div className="relative w-full max-w-md">
               <Input
@@ -74,8 +111,10 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* RIGHT */}
-          <div className="flex-1 flex justify-end items-center gap-2">
+          {/* =============================
+              RIGHT: Actions + Profile
+          ============================= */}
+          <div className="flex flex-1 justify-end items-center gap-2">
             <Button size="icon" variant="ghost">
               <CirclePlus className="h-7 w-7" />
             </Button>
@@ -109,11 +148,9 @@ export default function Navbar() {
                   {userName}
                 </DropdownMenuItem>
 
-                  <Link href="/profile">
-                    <DropdownMenuItem>
-                      Profile
-                    </DropdownMenuItem>
-                  </Link>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
 
                 <DropdownMenuItem className="text-indigo-600 font-medium">
                   Upgrade to Pro
@@ -141,11 +178,9 @@ export default function Navbar() {
                   <Link href="/settings">Settings</Link>
                 </DropdownMenuItem>
 
-                  <Link href="/dashboard">
-                    <DropdownMenuItem asChild>
-                      Admin Panel
-                    </DropdownMenuItem>
-                  </Link>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard">Admin Panel</Link>
+                </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
@@ -162,6 +197,7 @@ export default function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
         </div>
       </div>
     </nav>

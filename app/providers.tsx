@@ -1,91 +1,54 @@
 "use client";
 
-import { Provider } from "react-redux";
+import { usePathname } from "next/navigation";
+import { Provider as ReduxProvider } from "react-redux"; // ✅ Redux provider
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { store } from "@/redux/store";
 import Navbar from "@/components/Navbar";
-import { usePathname } from "next/navigation";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import System from "@/components/dashboard/side-menu/System";
-import Money from "@/components/dashboard/side-menu/Money";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/sidebar/Sidebar";
+import RightSidebar from "@/components/sidebar/RightSidebar";
+import AppHydration from "./AppHydration";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
-export default function Providers({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+  // Pages where we hide navbar/sidebar layout
   const hideLayout =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
-    pathname.startsWith("/dashboard");
+    pathname.startsWith("/dashboard") ||
     pathname.startsWith("/profile");
 
   return (
-    // ✅ Redux Provider ALWAYS mounted
-    <Provider store={store}>
+    <ReduxProvider store={store}>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-         <Navbar />
+        <AppHydration>
+          <Navbar />
 
-        {!hideLayout ? (
-          <div className="grid grid-cols-12 container mx-auto gap-4 mt-4">
-            <div className="col-span-2">
-              <div className="bg-white p-4 md:hidden">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button size="icon" variant="outline">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-
-                  {/* 🔥 Mobile Sidebar (Scrollable) */}
-                  <SheetContent
-                    side="left"
-                    className="w-72 bg-gray-100 p-0"
-                  >
-                    <div className="h-screen flex flex-col">
-
-                      {/* Scrollable Menu Area */}
-                        <Sidebar />
-                    </div>
-                  </SheetContent>
-                </Sheet>
+          {!hideLayout ? (
+            <div className="grid grid-cols-12 container mx-auto gap-4">
+              {/* Left Sidebar */}
+              <div className="hidden md:col-span-3 md:block">
+                <aside className="sticky top-4 bg-white p-4 rounded-xl shadow mt-3 h-fit">
+                  <Sidebar />
+                </aside>
               </div>
 
-            {/* ================= DESKTOP LAYOUT ================= */}
-              {/* Sidebar */}
-              <aside
-                className="
-                  hidden md:block
-                  md:col-span-3
-                  lg:col-span-3
-                  sticky top-4
-                  bg-white p-4
-                  rounded-xl shadow
-                  h-fit
-                  mt-4
-                "
-              >
-                <Sidebar />
-              </aside>
+              {/* Main Content */}
+              <div className="col-span-12 md:col-span-6">{children}</div>
+
+              {/* Right Sidebar */}
+              <div className="hidden md:col-span-3 md:flex justify-end mt-3">
+                <RightSidebar />
+              </div>
             </div>
-            <div className="col-span-8">{children}</div>
-            <div className="col-span-2">rightbar</div>
-          </div>
-        ) : (
-          <>{children}</>
-        )}
+          ) : (
+            <>{children}</>
+          )}
+        </AppHydration>
       </GoogleOAuthProvider>
-    </Provider>
+    </ReduxProvider>
   );
 }

@@ -7,7 +7,6 @@ import {
   Users,
   ChevronDown,
   List,
-  UsersRound,
   ShieldCheck,
   LayoutDashboard,
   LucideIcon,

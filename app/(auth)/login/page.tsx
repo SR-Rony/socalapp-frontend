@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -8,13 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import axios from "axios";
-import { useAppDispatch } from "@/redux/hook/hook";
+import { useAppDispatch, useAppSelector } from "@/redux/hook/hook";
 import { loginSuccess } from "@/redux/features/authSlice";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
-
-const API = process.env.NEXT_PUBLIC_API_URL;
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -24,6 +21,21 @@ export default function LoginPage() {
 
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { isAuthenticated, initialized, user } = useAppSelector((state: any) => state.auth);
+
+  // 🔹 Redirect if already logged in
+  useEffect(() => {
+    if (!initialized) return; // wait for Redux hydration
+
+    if (isAuthenticated) {
+      toast.warning("You are already logged in!");
+      if (user?.role === "ADMIN") {
+        router.replace("/dashboard");
+      } else {
+        router.replace("/");
+      }
+    }
+  }, [initialized, isAuthenticated, user, router]);
 
   // Email/Password login
   const handleLogin = async () => {
@@ -33,7 +45,7 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const res = await axios.post(`${API}/users/google`, { email, password });
+      const res = await api.post("/users/google", { email, password });
       if (res.data?.success) {
         
         localStorage.setItem("token", res.data.token);
@@ -62,11 +74,11 @@ export default function LoginPage() {
       if (res.data?.success) {
         const { token, user } = res.data;
 
-        // 🔹 persist
+        // 🔹 persist in localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        // 🔹 redux
+        // 🔹 update redux
         dispatch(
           loginSuccess({
             token,
@@ -75,12 +87,18 @@ export default function LoginPage() {
         );
 
         toast.success("Google login successful!");
+
+        // 🔹 Redirect based on role
         setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
+          if (user.role === "ADMIN") {
+            router.push("/dashboard");
+          } else {
+            router.push("/");
+          }
+        }, 500); // 0.5s is enough
       }
     } catch (error: any) {
-      console.error(error.response?.data || error);
+      console.error("login error", error.response?.data || error);
       toast.error("Google login failed");
     } finally {
       setLoading(false);

@@ -1,18 +1,37 @@
-// app/(client)/page.tsx
-export default function Home() {
-  return (
-    <div className="p-4">
-      <h1 className="text-3xl font-bold mb-6">Welcome to the Home Page</h1>
-      <p className="text-lg">
-        This is the main landing page of the application.
-      </p>
+"use client";
 
-      {/* Example: feed cards */}
-      <div className="space-y-4 mt-6">
-        <div className="p-4 bg-white rounded-lg shadow">Post 1</div>
-        <div className="p-4 bg-white rounded-lg shadow">Post 2</div>
-        <div className="p-4 bg-white rounded-lg shadow">Post 3</div>
-      </div>
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+import PostList from "@/components/post/PostList";
+import StorySlider from "@/components/story/StorySlider";
+import { useAppSelector } from "@/redux/hook/hook";
+import PostComposer from "@/components/post/PostComposer";
+
+export default function Home() {
+  const router = useRouter();
+  const { isAuthenticated, initialized } = useAppSelector((state: any) => state.auth);
+
+  useEffect(() => {
+    // wait until Redux hydration finishes
+    if (initialized && !isAuthenticated) {
+      toast.error("Please log in to continue.");
+      router.replace("/login");
+    }
+  }, [initialized, isAuthenticated, router]);
+
+  // wait for hydration
+  if (!initialized) return null;
+
+  // hide page if not authenticated
+  if (!isAuthenticated) return null;
+
+  return (
+    <div className="pt-4">
+      <PostComposer />
+      <StorySlider />
+      <PostList />
     </div>
   );
 }

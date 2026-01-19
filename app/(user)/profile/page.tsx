@@ -91,11 +91,11 @@ export default function ProfilePage() {
      UI
   ======================= */
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-8 container mx-auto bg-white p-4 mt-5 rounded-xl">
       <h1 className="text-2xl font-semibold">My Profile</h1>
 
       {/* ===== Basic Info ===== */}
-      <div className="bg-white p-6 rounded-xl border space-y-4">
+      <div className=" rounded-xl border space-y-4">
         <h2 className="font-medium">Basic Information</h2>
 
         <div>

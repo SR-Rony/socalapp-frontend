@@ -1,8 +1,14 @@
-// redux/features/authSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 interface AuthState {
-  user: any | null;
+  user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   initialized: boolean; // 🔹 hydration finished or not
@@ -19,29 +25,20 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    // 🔹 login (google / email)
-    loginSuccess: (
-      state,
-      action: PayloadAction<{ user: any; token: string }>
-    ) => {
+    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.initialized = true;
     },
 
-    // 🔹 restore from localStorage on reload
-    hydrateAuth: (
-      state,
-      action: PayloadAction<{ user: any | null; token: string }>
-    ) => {
+    hydrateAuth: (state, action: PayloadAction<{ user: User | null; token: string }>) => {
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.initialized = true;
     },
 
-    // 🔹 logout
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -53,7 +50,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginSuccess, logout, hydrateAuth } =
-  authSlice.actions;
-
+export const { loginSuccess, logout, hydrateAuth } = authSlice.actions;
 export default authSlice.reducer;
