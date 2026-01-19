@@ -135,7 +135,7 @@ export default function Navbar() {
                 Profile Dropdown
             ============================= */}
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
+              <DropdownMenuTrigger className="flex items-center gap-1 outline-none">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={user?.avatar || "/avatar.png"} />
                   <AvatarFallback>{userName}</AvatarFallback>

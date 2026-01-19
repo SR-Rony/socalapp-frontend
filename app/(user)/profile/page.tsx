@@ -45,6 +45,8 @@ export default function ProfilePage() {
     try {
       const res = await api.get("/users/me");
 
+      console.log("user data",res.data);
+      
       if (res.data?.success) {
         setProfile(res.data.data);
       }
