@@ -100,7 +100,7 @@ export default function AffiliatesSettingsPage() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white p-4 rounded-xl">
       {/* ================= Header ================= */}
       <div>
         <h1 className="text-xl font-semibold flex items-center gap-2">

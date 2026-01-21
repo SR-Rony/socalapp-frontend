@@ -38,7 +38,7 @@ const DashboardPage = () => {
   if (!initialized || !isAuthenticated || user?.role !== "ADMIN") return null;
 
   return (
-    <div>
+    <div className="bg-white p-4 rounded-xl">
       <main>
         <DashboardChart />
         <InfoCards />

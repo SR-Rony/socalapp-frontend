@@ -8,6 +8,9 @@ import {
   Heart,
   Search,
   Trash2,
+  Edit3,
+  RotateCcw,
+  Flame,
 } from "lucide-react";
 
 import {
@@ -18,7 +21,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import Image from "next/image";
@@ -26,463 +28,339 @@ import Image from "next/image";
 /* =======================
    Types
 ======================= */
-type FeedPost = {
+type Post = {
   _id: string;
+  text?: string;
+  type: string;
+  privacy: string;
+  isDeleted?: boolean;
+  createdAt: string;
   author: {
     name: string;
+    username: string;
+    avatar?: { url: string };
+    isVerified?: boolean;
   };
-  type: string;
-  approved: boolean;
-  createdAt: string;
-};
-
-type FeedStats = {
-  totalPosts: number;
-  pendingPosts: number;
-  comments: number;
-  reactions: number;
+  medias?: { type: string; url: string }[];
+  likeCount?: number;
+  commentCount?: number;
+  shareCount?: number;
 };
 
 /* =======================
    Page
 ======================= */
-export default function PostsPage() {
+export default function AdminPostsPage() {
   const ITEMS_PER_PAGE = 10;
 
-  const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [stats, setStats] = useState<FeedStats>({
-    totalPosts: 0,
-    pendingPosts: 0,
-    comments: 0,
-    reactions: 0,
-  });
-
-  const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<any>(null);
-const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const [viewPost, setViewPost] = useState<Post | null>(null);
+  const [editPost, setEditPost] = useState<Post | null>(null);
+  const [editText, setEditText] = useState("");
 
   /* =======================
-     Fetch Feed
+     Fetch Posts
   ======================= */
-  const fetchFeed = async () => {
-    setLoading(true);
+  const fetchPosts = async () => {
     try {
-      const res = await api.get("posts/feed", {
-        params: {
-          limit: 100,
-        },
-      });
-
-      console.log("all post data",res.data);
-      
-
-      if (res.data?.success) {
-        const items = res.data.items || [];
-        console.log("posts item",items);
-        
-
-        setPosts(items);
-        setStats({
-          totalPosts: items.length,   // ✅ এখানে
-          pendingPosts: res.data.stats?.pendingPosts || 0,
-          comments: res.data.stats?.comments || 0,
-          reactions: res.data.stats?.reactions || 0,
-        });
+      setLoading(true);
+      const res = await api.get("/admin/posts");
+      if (res.data?.ok) {
+        setPosts(res.data.data);
       }
-    } catch (error) {
-      console.error("Feed load failed");
+    } catch {
+      toast.error("Failed to load posts");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFeed();
+    fetchPosts();
   }, []);
 
   /* =======================
-     Stats UI (DESIGN SAME)
+     Actions
   ======================= */
-  const statsUI = [
-    {
-      title: "Total Posts",
-      value: stats.totalPosts,
-      icon: FileText,
-      gradient: "from-indigo-500 to-indigo-600",
-    },
-    {
-      title: "Pending Posts",
-      value: stats.pendingPosts,
-      icon: Clock,
-      gradient: "from-amber-500 to-amber-600",
-    },
-    {
-      title: "Comments",
-      value: stats.comments,
-      icon: MessageCircle,
-      gradient: "from-emerald-500 to-emerald-600",
-    },
-    {
-      title: "Reactions",
-      value: stats.reactions,
-      icon: Heart,
-      gradient: "from-pink-500 to-rose-600",
-    },
-  ];
-
-
-  // handler delete post
-const handlePostDelete = async (postId: string) => {
-  if (!postId) return;
-
-  const confirmDelete = window.confirm(
-    "Are you sure you want to delete this post?"
-  );
-  if (!confirmDelete) return;
-
-  try {
-    // ✅ route match করানো হলো
-    const res = await api.delete(`/posts/${postId}/delete`);
-    
-
-    if (res.data?.success) {
-      toast.success("Post deleted");
-
-      // ✅ UI থেকে post remove
-      setPosts((prev) => prev.filter((p) => p._id !== postId));
+  const updatePost = async () => {
+    if (!editPost) return;
+    try {
+      await api.patch(`/admin/posts/${editPost._id}`, {
+        text: editText,
+      });
+      toast.success("Post updated");
+      setEditPost(null);
+      fetchPosts();
+    } catch {
+      toast.error("Update failed");
     }
-  } catch (error: any) {
-    toast.error(
-      error?.response?.data?.message || "Failed to delete post"
-    );
-  }
-};
+  };
 
+  const softDelete = async (id: string) => {
+    if (!confirm("Soft delete this post?")) return;
+    try {
+      await api.delete(`/admin/posts/${id}`);
+      toast.success("Post deleted");
+      fetchPosts();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
 
+  const restorePost = async (id: string) => {
+    try {
+      await api.patch(`/admin/posts/${id}/restore`);
+      toast.success("Post restored");
+      fetchPosts();
+    } catch {
+      toast.error("Restore failed");
+    }
+  };
+
+  const hardDelete = async (id: string) => {
+    if (
+      !confirm(
+        "⚠️ Hard delete will permanently remove this post. Continue?"
+      )
+    )
+      return;
+    try {
+      await api.delete(`/admin/posts/${id}/hard`);
+      toast.success("Post permanently deleted");
+      fetchPosts();
+    } catch {
+      toast.error("Hard delete failed");
+    }
+  };
 
   /* =======================
      Filter + Pagination
   ======================= */
-  const filteredPosts = posts.filter(
-    (post) =>
-      post.author.name.toLowerCase().includes(search.toLowerCase()) ||
-      post.type.toLowerCase().includes(search.toLowerCase())
+  const filtered = posts.filter(
+    (p) =>
+      p.author.name
+        .toLowerCase()
+        .includes(search.toLowerCase()) ||
+      p.type.toLowerCase().includes(search.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedPosts = filteredPosts.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const start = (page - 1) * ITEMS_PER_PAGE;
+  const paginated = filtered.slice(start, start + ITEMS_PER_PAGE);
 
   /* =======================
      UI
   ======================= */
   return (
-    <div className="space-y-8">
-      {/* 🔹 Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsUI.map((item, index) => {
-          const Icon = item.icon;
-          return (
-            <div
-              key={index}
-              className={`
-                bg-gradient-to-r ${item.gradient}
-                rounded-xl p-5 text-white shadow
-                hover:shadow-lg transition
-              `}
-            >
-              <div className="flex items-center gap-4">
-                <div className="bg-white/20 p-3 rounded-lg">
-                  <Icon className="h-6 w-6" />
-                </div>
+    <div className="space-y-6 bg-white p-4 rounded-xl">
+      <h1 className="text-2xl font-semibold">Posts Management</h1>
 
-                <div>
-                  <p className="text-sm text-white/80">{item.title}</p>
-                  <h3 className="text-3xl font-bold">
-                    {loading ? "—" : item.value}
-                  </h3>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      {/* Search */}
+      <div className="relative w-full sm:w-64">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" />
+        <Input
+          className="pl-9"
+          placeholder="Search post..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
       </div>
 
-      {/* 🔹 Table Section */}
-      <div className="bg-white rounded-xl shadow border">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b">
-          <h2 className="text-lg font-semibold">Posts List</h2>
+      {/* Table */}
+      <div className="overflow-x-auto border rounded-xl">
+        <table className="min-w-[1000px] w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-4 py-3">Author</th>
+              <th className="border px-4 py-3">Type</th>
+              <th className="border px-4 py-3">Status</th>
+              <th className="border px-4 py-3">Created</th>
+              <th className="border px-4 py-3 text-right">
+                Actions
+              </th>
+            </tr>
+          </thead>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by author or type..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-9"
-            />
-          </div>
-        </div>
+          <tbody>
+            {paginated.map((post) => (
+              <tr
+                key={post._id}
+                className={`hover:bg-gray-50 ${
+                  post.isDeleted ? "opacity-60" : ""
+                }`}
+              >
+                <td className="border px-4 py-2">
+                  {post.author.name}
+                  <div className="text-xs text-muted-foreground">
+                    @{post.author.username}
+                  </div>
+                </td>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border border-gray-200 border-collapse">
-            <thead className="bg-gray-100 text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 text-left border font-semibold">ID</th>
-                <th className="px-4 py-3 text-left border font-semibold">
-                  Author
-                </th>
-                <th className="px-4 py-3 text-left border font-semibold">
-                  Type
-                </th>
-                <th className="px-4 py-3 text-left border font-semibold">
-                  Approved
-                </th>
-                <th className="px-4 py-3 text-left border font-semibold">
-                  Time
-                </th>
-                <th className="px-4 py-3 text-left border font-semibold">
-                  Link
-                </th>
-                <th className="px-4 py-3 text-right border font-semibold">
-                  Actions
-                </th>
-              </tr>
-            </thead>
+                <td className="border px-4 py-2">
+                  {post.type}
+                </td>
 
-            <tbody>
-              {paginatedPosts.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-4 py-6 text-center text-muted-foreground border"
-                  >
-                    No posts found
-                  </td>
-                </tr>
-              )}
-
-              {paginatedPosts.map((post, index) => (
-                <tr key={post._id} className="hover:bg-gray-50 transition">
-                  <td className="px-4 py-3 border">
-                    {startIndex + index + 1}
-                  </td>
-
-                  <td className="px-4 py-3 border font-medium">
-                    {post.author.name}
-                  </td>
-
-                  <td className="px-4 py-3 border">
-                    <span className="rounded-full bg-blue-100 text-blue-700 px-2 py-1 text-xs">
-                      {post.type}
+                <td className="border px-4 py-2">
+                  {post.isDeleted ? (
+                    <span className="text-red-600">
+                      Deleted
                     </span>
-                  </td>
+                  ) : (
+                    <span className="text-green-600">
+                      Active
+                    </span>
+                  )}
+                </td>
 
-                  <td className="px-4 py-3 border">
-                    {post.approved ? (
-                      <span className="rounded-full bg-green-100 text-green-700 px-2 py-1 text-xs">
-                        Approved
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-yellow-100 text-yellow-700 px-2 py-1 text-xs">
-                        Pending
-                      </span>
-                    )}
-                  </td>
+                <td className="border px-4 py-2">
+                  {new Date(
+                    post.createdAt
+                  ).toLocaleString()}
+                </td>
 
-                  <td className="px-4 py-3 border text-muted-foreground">
-                    {new Date(post.createdAt).toLocaleString()}
-                  </td>
-
-                  <td className="px-4 py-3 border">
-                    <button
-                      onClick={() => {
-                        setSelectedPost(post);
-                        setOpen(true);
-                      }}
-                      className="text-indigo-600 hover:underline"
-                    >
-                      View
-                    </button>
-                  </td>
-
-                  <td className="px-4 py-3 border text-right">
-                    <Button
-                      onClick={() => handlePostDelete(post._id)}
-                      size="icon"
-                      variant="destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 🔹 Pagination */}
-        {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-t">
-            <p className="text-sm text-muted-foreground">
-              Showing{" "}
-              <span className="font-medium">{startIndex + 1}</span> to{" "}
-              <span className="font-medium">
-                {Math.min(startIndex + ITEMS_PER_PAGE, filteredPosts.length)}
-              </span>{" "}
-              of <span className="font-medium">{filteredPosts.length}</span>{" "}
-              entries
-            </p>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-              >
-                Prev
-              </Button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
+                <td className="border px-4 py-2 flex justify-end gap-2">
                   <Button
-                    key={page}
-                    size="sm"
-                    variant={currentPage === page ? "default" : "outline"}
-                    onClick={() => setCurrentPage(page)}
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setViewPost(post)}
                   >
-                    {page}
+                    <FileText className="h-4 w-4" />
                   </Button>
-                )
-              )}
 
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        )}
+                  {!post.isDeleted && (
+                    <>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() => {
+                          setEditPost(post);
+                          setEditText(post.text || "");
+                        }}
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={() =>
+                          softDelete(post._id)
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+
+                  {post.isDeleted && (
+                    <>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={() =>
+                          restorePost(post._id)
+                        }
+                      >
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={() =>
+                          hardDelete(post._id)
+                        }
+                      >
+                        <Flame className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      {/* modal */}
-      <Dialog open={open} onOpenChange={setOpen}>
+
+      {/* View Modal */}
+      <Dialog open={!!viewPost} onOpenChange={() => setViewPost(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Post Details</DialogTitle>
           </DialogHeader>
 
-          {selectedPost && (
-            <div className="space-y-5 text-sm">
-              {/* ===== Author ===== */}
-              <div className="flex items-center gap-3">
-                {selectedPost.author?.avatar?.url && (
-                  <img
-                    src={selectedPost.author.avatar.url}
-                    alt="avatar"
-                    className="h-10 w-10 rounded-full object-cover"
-                  />
-                )}
-                <div>
-                  <p className="font-medium">{selectedPost.author?.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    @{selectedPost.author?.username}
-                  </p>
-                </div>
-              </div>
+          {viewPost && (
+            <div className="space-y-4">
+              <p className="font-medium">
+                {viewPost.author.name}
+              </p>
+              <p className="whitespace-pre-line">
+                {viewPost.text}
+              </p>
 
-              {/* ===== Meta ===== */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="font-medium">Type:</span>{" "}
-                  {selectedPost.type}
-                </div>
-
-                <div>
-                  <span className="font-medium">Privacy:</span>{" "}
-                  {selectedPost.privacy}
-                </div>
-
-                <div>
-                  <span className="font-medium">Likes:</span>{" "}
-                  {selectedPost.likeCount}
-                </div>
-
-                <div>
-                  <span className="font-medium">Comments:</span>{" "}
-                  {selectedPost.commentCount}
-                </div>
-
-                <div>
-                  <span className="font-medium">Shares:</span>{" "}
-                  {selectedPost.shareCount}
-                </div>
-
-                <div>
-                  <span className="font-medium">Created:</span>{" "}
-                  {new Date(selectedPost.createdAt).toLocaleString()}
-                </div>
-              </div>
-
-              {/* ===== Text ===== */}
-              {selectedPost.text && (
-                <div>
-                  <span className="font-medium">Post Text:</span>
-                  <p className="mt-2 whitespace-pre-line text-muted-foreground">
-                    {selectedPost.text}
-                  </p>
-                </div>
-              )}
-
-              {/* ===== Media ===== */}
-              {Array.isArray(selectedPost.medias) &&
-                selectedPost.medias.length > 0 && (
-                  <div className="space-y-3">
-                    <span className="font-medium">Media:</span>
-
-                    {selectedPost.medias.map((media: any, idx: number) => (
-                      <div key={idx}>
-                        {/* Image */}
-                        {media.type === "image" && (
-                          <img
-                            src={media.url}
-                            alt="post media"
-                            className="rounded-lg max-h-80 w-full object-cover"
-                          />
-                        )}
-
-                        {/* Video */}
-                        {media.type === "video" && (
-                          <video
-                            src={media.url}
-                            controls
-                            className="rounded-lg max-h-80 w-full"
-                          />
-                        )}
+              {viewPost.medias?.map((media, i) => (
+                  <div key={i} className="overflow-hidden rounded-lg">
+                    {/* Image */}
+                    {media.type === "image" && (
+                      <div className="relative w-full h-[420px]">
+                        <Image
+                          src={media.url}
+                          alt="Post media"
+                          fill
+                          className="object-cover rounded-lg"
+                          sizes="(max-width: 768px) 100vw, 800px"
+                          priority={false}
+                        />
                       </div>
-                    ))}
+                    )}
+
+                    {/* Video */}
+                    {media.type === "video" && (
+                      <video
+                        src={media.url}
+                        controls
+                        className="w-full max-h-[420px] rounded-lg"
+                      />
+                    )}
                   </div>
-                )}
+                ))}
             </div>
           )}
         </DialogContent>
       </Dialog>
 
+      {/* Edit Modal */}
+      <Dialog open={!!editPost} onOpenChange={() => setEditPost(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Post</DialogTitle>
+          </DialogHeader>
 
+          <Input
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+          />
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setEditPost(null)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={updatePost}>
+              Update
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -47,7 +47,7 @@ export default function MonetizationSettingsPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className=" bg-white p-4 rounded-xl">
       <h1 className="text-2xl font-semibold">Monetization Settings</h1>
       <p className="text-sm text-muted-foreground">
         Control how users can monetize content and manage commission settings

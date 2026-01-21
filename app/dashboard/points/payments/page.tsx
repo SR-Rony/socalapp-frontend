@@ -69,7 +69,7 @@ export default function PaymentRequestsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6 bg-white rounded-lg shadow">
+    <div className="bg-white p-4 rounded-xl">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold">Payment Requests</h1>

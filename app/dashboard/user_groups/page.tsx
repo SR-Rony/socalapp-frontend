@@ -92,7 +92,7 @@ export default function UserGroupsPage() {
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-5 bg-white p-4 rounded-xl">
       {/* =======================
          🔹 System Groups
       ======================= */}

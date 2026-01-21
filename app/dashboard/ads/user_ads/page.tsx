@@ -55,7 +55,7 @@ const page = () => {
   );
 
   return (
-    <div className="space-y-6 bg-white p-6 rounded-lg shadow">
+    <div className="bg-white p-4 rounded-xl">
 
       {/* ================= Header ================= */}
       <div>

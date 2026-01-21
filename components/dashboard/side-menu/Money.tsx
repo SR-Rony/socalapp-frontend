@@ -112,6 +112,11 @@ const menu: MenuItem[] = [
     icon: DollarSign, // Monetization → Money
     children: [
       {
+        title: "Monetization List",
+        href: "/dashboard/monietization/list",
+        icon: Settings,
+      },
+      {
         title: "Monetization Settings",
         href: "/dashboard/monietization/setting",
         icon: Settings,
@@ -120,7 +125,7 @@ const menu: MenuItem[] = [
         title: "Payments Request",
         href: "/dashboard/monietization/payment",
         icon: CreditCard,
-      },
+      }
     ],
   },
 

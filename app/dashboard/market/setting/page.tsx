@@ -62,7 +62,7 @@ export default function MarketplaceSettingsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className="bg-white p-4 rounded-xl">
       <div>
         <h1 className="text-2xl font-semibold">Marketplace Settings</h1>
         <p className="text-sm text-muted-foreground">

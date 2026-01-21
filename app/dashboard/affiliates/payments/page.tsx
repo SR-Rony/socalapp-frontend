@@ -122,7 +122,7 @@ export default function PaymentRequestsPage() {
   // =============================
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="bg-white p-4 rounded-xl">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>

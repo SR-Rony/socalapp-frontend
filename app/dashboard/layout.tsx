@@ -14,6 +14,8 @@ import Module from "@/components/dashboard/side-menu/Modules";
 
 import { usePathname } from "next/navigation";
 import Money from "@/components/dashboard/side-menu/Money";
+import SuportCenter from "@/components/dashboard/side-menu/SuportCenter";
+import Tools from "@/components/dashboard/side-menu/Tools";
 
 export default function DashboardLayout({
   children,
@@ -61,6 +63,8 @@ export default function DashboardLayout({
                   <UserMenu />
                   <Module />
                   <Money />
+                  <SuportCenter />
+                  <Tools />
                 </div>
 
               </div>
@@ -88,6 +92,8 @@ export default function DashboardLayout({
             <UserMenu />
             <Module />
             <Money />
+            <SuportCenter />
+            <Tools />
           </aside>
 
           {/* Main Content */}

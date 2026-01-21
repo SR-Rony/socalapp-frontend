@@ -100,7 +100,7 @@ export default function WalletSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="bg-white p-4 rounded-xl">
       {/* Title */}
       <div>
         <h1 className="text-xl font-semibold">Wallet Settings</h1>

@@ -1,0 +1,165 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import {
+  ChevronDown,
+  LucideIcon,
+  FileText,
+  ListChecks,
+  UserX,
+  BadgeCheck,
+  UserCheck,
+  ShieldCheck,
+} from "lucide-react";
+
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
+type MenuItem =
+  | {
+      title: string;
+      icon: LucideIcon;
+      href: string;
+      children?: never;
+    }
+  | {
+      title: string;
+      icon: LucideIcon;
+      children: {
+        title: string;
+        href: string;
+        icon?: LucideIcon;
+      }[];
+      href?: never;
+    };
+
+const menu: MenuItem[] = [
+  {
+    title: "Reports",
+    icon: FileText,
+    children: [
+      {
+        title: "List Reports",
+        href: "/dashboard/reports/list",
+        icon: ListChecks,
+      },
+    ],
+  },
+  {
+    title: "BlackList",
+    href: "/dashboard/blacklist",
+    icon: UserX,
+  },
+  {
+    title: "Verification",
+    icon: BadgeCheck,
+    children: [
+      {
+        title: "List Requests",
+        href: "/dashboard/verification/requestlist",
+        icon: UserCheck,
+      },
+      {
+        title: "List Verified Users",
+        href: "/dashboard/verification/user",
+        icon: ShieldCheck,
+      },
+    ],
+  },
+];
+
+
+
+export default function Tools() {
+  const pathname = usePathname();
+
+  return (
+    <div className="flex h-full flex-col bg-white rounded-xl shadow p-4 mt-5">
+      {/* Logo */}
+      <div className="mb-6  font-bold">
+        <span>Tools</span>
+      </div>
+
+      <nav className="space-y-1">
+        {menu.map((item) => {
+          const Icon = item.icon;
+
+          // 🔹 Normal item
+          if (!item.children) {
+            const active = pathname === item.href;
+
+            return (
+              <Link
+                key={item.title}
+                href={item.href!}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition
+                  ${
+                    active
+                      ? "bg-secondary"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+              >
+                <Icon className="h-4 w-4 text-[#10897E]" />
+                {item.title}
+              </Link>
+            );
+          }
+
+          // 🔹 Collapsible item
+          const isChildActive = item.children.some((c) =>
+            pathname.startsWith(c.href)
+          );
+
+          return (
+            <Collapsible key={item.title} defaultOpen={isChildActive}>
+              <CollapsibleTrigger
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition
+                  ${
+                    isChildActive
+                      ? "bg-secondary"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+              >
+                <span className="flex items-center gap-3">
+                  <Icon className="h-4 w-4 text-[#10897E]" />
+                  {item.title}
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </CollapsibleTrigger>
+
+              <CollapsibleContent className="mt-1 space-y-1 pl-9">
+                {item.children.map((child) => {
+                  const active = pathname === child.href;
+                  // const ChildIcon = child;
+
+                  return (
+                    <Link
+                      key={child.title}
+                      href={child.href}
+                      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition
+                        ${
+                          active
+                            ? "bg-secondary"
+                            : "text-muted-foreground hover:bg-muted"
+                        }`}
+                    >
+                      {/* {ChildIcon && (
+                        <ChildIcon className="h-3.5 w-3.5" />
+                      )} */}
+                      {child.title}
+                    </Link>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}

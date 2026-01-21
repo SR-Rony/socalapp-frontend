@@ -128,7 +128,7 @@ export default function UsersPage() {
      UI
   ======================= */
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-white p-4 rounded-xl">
       {/* ===== Stats ===== */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Users" value={users.length} icon={Users} />

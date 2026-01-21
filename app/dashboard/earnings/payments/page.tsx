@@ -39,7 +39,7 @@ const PaymentCard = ({
 
 const page = () => {
   return (
-    <div className="space-y-6">
+    <div className="bg-white p-4 rounded-xl">
 
       {/* ================= Charts ================= */}
       <div className="grid grid-cols-12 gap-2">
