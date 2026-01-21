@@ -4,13 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import {
-  BookText,
   Users,
-  Settings,
   ChevronDown,
-  User,
-  Shield,
   LucideIcon,
+  FileText,
+  BookOpen,
 } from "lucide-react";
 
 import {
@@ -40,12 +38,21 @@ type MenuItem = {
 const menu: MenuItem[] = [
   {
     title: "Posts",
-    icon: BookText,
+    icon: FileText,
     children: [
       {
         title: "List Posts",
         href: "/dashboard/posts/list",
-        icon: User,
+      },
+    ],
+  },
+  {
+    title: "Stories",
+    icon: BookOpen,
+    children: [
+      {
+        title: "Stories List",
+        href: "/dashboard/stories",
       },
     ],
   },
@@ -56,13 +63,7 @@ const menu: MenuItem[] = [
       {
         title: "List Groups",
         href: "/dashboard/user_groups",
-        icon: User,
       },
-      // {
-      //   title: "List Categories",
-      //   href: "/dashboard/groups/categories",
-      //   icon: Shield,
-      // },
     ],
   },
 ];
