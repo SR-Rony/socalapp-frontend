@@ -82,7 +82,6 @@ export default function DashboardLayout({
             className="
               hidden md:block
               md:col-span-3
-              lg:col-span-3
               sticky top-4
               h-fit
               mt-4

@@ -145,6 +145,17 @@ const menu: MenuItem[] = [
       },
     ],
   },
+  {
+    title: "Withdraw",
+    icon: DollarSign, // Marketplace → Store
+    children: [
+      {
+        title: "Withdraw List",
+        href: "/dashboard/withdraw",
+        icon: Settings,
+      },
+    ],
+  },
 ];
 
 export default function Money() {

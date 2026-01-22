@@ -28,7 +28,7 @@ export default function LoginPage() {
     if (!initialized) return; // wait for Redux hydration
 
     if (isAuthenticated) {
-      toast.warning("You are already logged in!");
+      // toast.warning("You are already logged in!");
       if (user?.role === "ADMIN") {
         router.replace("/dashboard");
       } else {

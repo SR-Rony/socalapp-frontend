@@ -8,8 +8,6 @@ import {
   ShieldCheck,
   Search,
   Trash2,
-  Pencil,
-  Ban,
   LogOut,
 } from "lucide-react";
 
@@ -19,13 +17,6 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 
 /* =======================
    Types
@@ -50,9 +41,6 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-
-  const [editOpen, setEditOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   /* =======================
      Fetch users
