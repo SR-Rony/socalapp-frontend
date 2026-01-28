@@ -1,61 +1,95 @@
 "use client";
 
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Edit, Trash2 } from "lucide-react";
+import { adminAdsService } from "@/services/adminAdsService";
+import { toast } from "sonner";
 
-const ADS_DATA = {
-  pending: [
-    {
-      id: "AD-101",
-      title: "Winter Sale Banner",
-      by: "John Doe",
-      budget: "$150",
-      status: "Pending",
-    },
-    {
-      id: "AD-102",
-      title: "New Product Launch",
-      by: "Sarah Smith",
-      budget: "$220",
-      status: "Pending",
-    },
-  ],
-  approved: [
-    {
-      id: "AD-201",
-      title: "Black Friday Deal",
-      by: "Alex Brown",
-      budget: "$500",
-      status: "Approved",
-    },
-    {
-      id: "AD-202",
-      title: "Eid Campaign",
-      by: "Rony Ahmed",
-      budget: "$300",
-      status: "Approved",
-    },
-  ],
+/* =======================
+   Types
+======================= */
+type Ad = {
+  _id: string;
+  title: string;
+  createdBy: {
+    name: string;
+    email: string;
+  };
+  budget: number;
+  status: "pending" | "approved";
+  isDeleted?: boolean;
 };
 
-const page = () => {
-  const [activeTab, setActiveTab] = useState<"pending" | "approved">(
-    "pending"
-  );
-  const [search, setSearch] = useState("");
+/* =======================
+   Page
+======================= */
+export default function AdminUserAdsPage() {
+  const [activeTab, setActiveTab] =
+    useState<"pending" | "approved">("pending");
 
-  const ads = ADS_DATA[activeTab].filter(
-    (ad) =>
-      ad.title.toLowerCase().includes(search.toLowerCase()) ||
-      ad.by.toLowerCase().includes(search.toLowerCase())
-  );
+  const [ads, setAds] = useState<Ad[]>([]);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [loading, setLoading] = useState(false);
+  
+
+  /* =======================
+     Fetch Ads
+  ======================= */
+  const fetchAds = async () => {
+    setLoading(true);
+    try {
+      const res = await adminAdsService.getAds({
+        status: activeTab,
+        search,
+        page,
+        limit,
+      });
+      // setAds(res.data.items || []);
+      console.log('ads data ',res.data);
+      
+    } catch {
+      toast.error("Failed to load ads");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAds();
+  }, [activeTab, search, page, limit]);
+
+  /* =======================
+     Actions
+  ======================= */
+  const approveAd = async (id: string) => {
+    try {
+      await adminAdsService.approveAd(id);
+      toast.success("Ad approved");
+      fetchAds();
+    } catch {
+      toast.error("Approve failed");
+    }
+  };
+
+  const deleteAd = async (id: string) => {
+    if (!confirm("Delete this ad?")) return;
+    try {
+      await adminAdsService.deleteAd(id);
+      toast.success("Ad deleted");
+      fetchAds();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
 
   return (
-    <div className="bg-white p-4 rounded-xl">
+    <div className="bg-white p-4 rounded-xl space-y-4">
 
       {/* ================= Header ================= */}
       <div>
@@ -65,45 +99,56 @@ const page = () => {
         </p>
       </div>
 
-      {/* ================= Top Controls ================= */}
+      {/* ================= Controls ================= */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
         {/* Tabs */}
         <div className="flex gap-2">
           <Button
             variant={activeTab === "pending" ? "default" : "outline"}
-            onClick={() => setActiveTab("pending")}
+            onClick={() => {
+              setActiveTab("pending");
+              setPage(1);
+            }}
           >
             Pending
           </Button>
+
           <Button
             variant={activeTab === "approved" ? "default" : "outline"}
-            onClick={() => setActiveTab("approved")}
+            onClick={() => {
+              setActiveTab("approved");
+              setPage(1);
+            }}
           >
             Approved
           </Button>
         </div>
 
-        {/* Show & Search */}
+        {/* Search & Limit */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-sm">
-            <span>Show</span>
-            <select className="border rounded-md px-2 py-1">
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
-            </select>
-            <span>entries</span>
-          </div>
+          <select
+            className="border rounded-md px-2 py-1 text-sm"
+            value={limit}
+            onChange={(e) => {
+              setLimit(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
 
-          <div className="flex items-center gap-1 text-sm">
-            <span>Search:</span>
-            <Input
-              className="h-9 w-48"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <Input
+            className="h-9 w-48"
+            placeholder="Search ads..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+          />
         </div>
       </div>
 
@@ -114,7 +159,7 @@ const page = () => {
             <table className="w-full text-sm">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-4 py-3 text-left">ID</th>
+                  <th className="px-4 py-3 text-left">#</th>
                   <th className="px-4 py-3 text-left">Title</th>
                   <th className="px-4 py-3 text-left">By</th>
                   <th className="px-4 py-3 text-left">Budget</th>
@@ -124,49 +169,75 @@ const page = () => {
               </thead>
 
               <tbody>
-                {ads.map((ad, index) => (
-                  <tr
-                    key={index}
-                    className="border-b last:border-0"
-                  >
-                    <td className="px-4 py-3">{ad.id}</td>
-                    <td className="px-4 py-3">{ad.title}</td>
-                    <td className="px-4 py-3">{ad.by}</td>
-                    <td className="px-4 py-3 font-medium">
-                      {ad.budget}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge
-                        variant={
-                          ad.status === "Approved"
-                            ? "success"
-                            : "secondary"
-                        }
-                      >
-                        {ad.status}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <Button size="icon" variant="outline">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button size="icon" variant="outline">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className="text-red-500"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                {loading && (
+                  <tr>
+                    <td colSpan={6} className="py-6 text-center">
+                      Loading...
                     </td>
                   </tr>
-                ))}
+                )}
 
-                {ads.length === 0 && (
+                {!loading &&
+                  ads.map((ad, index) => (
+                    <tr key={ad._id} className="border-b last:border-0">
+                      <td className="px-4 py-3">
+                        {(page - 1) * limit + index + 1}
+                      </td>
+
+                      <td className="px-4 py-3 font-medium">
+                        {ad.title}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        {ad.createdBy?.name || "Unknown"}
+                      </td>
+
+                      <td className="px-4 py-3 font-medium">
+                        ৳{ad.budget}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant={
+                            ad.status === "approved"
+                              ? "success"
+                              : "secondary"
+                          }
+                        >
+                          {ad.status}
+                        </Badge>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <Button size="icon" variant="outline">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+
+                          {ad.status === "pending" && (
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              onClick={() => approveAd(ad._id)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          )}
+
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="text-red-500"
+                            onClick={() => deleteAd(ad._id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+
+                {!loading && ads.length === 0 && (
                   <tr>
                     <td
                       colSpan={6}
@@ -185,22 +256,30 @@ const page = () => {
       {/* ================= Pagination ================= */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Showing 1 to {ads.length} entries
+          Showing {ads.length} entries
         </p>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
             Prev
           </Button>
-          <Button size="sm">1</Button>
-          <Button variant="outline" size="sm">
+
+          <Button size="sm">{page}</Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => p + 1)}
+          >
             Next
           </Button>
         </div>
       </div>
-
     </div>
   );
-};
-
-export default page;
+}

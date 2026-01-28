@@ -1,52 +1,41 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import api from "@/lib/api";
-
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function CompleteProfilePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
   const [birthDate, setBirthDate] = useState("");
   const [country, setCountry] = useState("");
-  const [age, setAge] = useState<number | "">("");
+  const [age, setAge] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
-    if (!birthDate || !country || !age) {
-      toast.error("Please fill all fields");
-      return;
-    }
-
+  const submit = async () => {
     try {
       setLoading(true);
-
-      const res = await api.patch("/users/other-info", {
+      await api.patch("/users/other-info", {
         birthDate,
         country,
-        age,
+        age: Number(age),
       });
 
-      if (res.data?.success) {
-        toast.success("Profile completed successfully");
-        router.push("/dashboard");
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Profile update failed");
+      router.replace("/me");
+    } catch {
+      alert("Profile completion failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950">
-      <div className="bg-white p-8 rounded-xl w-full max-w-md space-y-4">
-        <h1 className="text-2xl font-bold text-center">
-          Complete Your Profile
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="bg-white p-8 rounded-xl w-full max-w-md shadow space-y-5">
+        <h1 className="text-2xl font-semibold text-center">
+          Complete your profile
         </h1>
 
         <Input
@@ -65,15 +54,15 @@ export default function CompleteProfilePage() {
           type="number"
           placeholder="Age"
           value={age}
-          onChange={(e) => setAge(Number(e.target.value))}
+          onChange={(e) => setAge(e.target.value)}
         />
 
         <Button
           className="w-full"
-          onClick={handleSubmit}
+          onClick={submit}
           disabled={loading}
         >
-          {loading ? "Saving..." : "Continue"}
+          Continue
         </Button>
       </div>
     </div>

@@ -20,45 +20,53 @@ type FeedItem = {
 export default function PostList() {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
+  console.log("post data",posts);
+  
 
   useEffect(() => {
-    const fetchFeed = async () => {
-      try {
-        const res = await api.get("/posts/feed", { params: { limit: 10 } });
+  const fetchFeed = async () => {
+    try {
+      const res = await api.get("/posts/feed", { params: { limit: 10 } });
 
-        if (res.data?.success && Array.isArray(res.data.items)) {
-          const mappedPosts: PostData[] = res.data.items.map((item: FeedItem) => {
-            const mediaItem = item.medias?.[0];
+      console.log("feed data", res.data.items);
 
-            return {
-              user: {
-                name: item.author?.name || "Unknown",
-                avatar:
-                  typeof item.author?.avatar === "string"
-                    ? item.author.avatar
-                    : item.author?.avatar?.url || "https://ui-avatars.com/api/?name=User",
-              },
-              time: formatTime(item.createdAt),
-              content: item.text,
-              media: mediaItem?.url,
-              mediaType: mediaItem?.type || "image",
-            };
-          });
+      if (res.data?.success && Array.isArray(res.data.items)) {
+        const mappedPosts: PostData[] = res.data.items.map((item: FeedItem) => {
+          const post = item.data; // 🔥 মূল post data
 
-          setPosts(mappedPosts);
-        } else {
-          setPosts([]);
-        }
-      } catch (error) {
-        console.error("Feed load failed", error);
+          const mediaItem = post.medias?.[0];
+
+          return {
+            user: {
+              name: post.author?.name || "Unknown",
+              avatar:
+                typeof post.author?.avatar === "string"
+                  ? post.author.avatar
+                  : post.author?.avatar?.url ||
+                    "https://ui-avatars.com/api/?name=User",
+            },
+            time: formatTime(post.createdAt),
+            content: post.text,
+            media: mediaItem?.url,
+            mediaType: mediaItem?.type || "image",
+          };
+        });
+
+        setPosts(mappedPosts);
+      } else {
         setPosts([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Feed load failed", error);
+      setPosts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchFeed();
-  }, []);
+  fetchFeed();
+}, []);
+
 
   if (loading)
     return <p className="text-center text-muted-foreground">Loading feed...</p>;
