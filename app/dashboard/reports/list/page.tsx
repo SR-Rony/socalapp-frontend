@@ -1,241 +1,377 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Search,
-  Pencil,
-  Trash2,
   Eye,
+  Trash2,
+  Pencil,
   FileWarning,
 } from "lucide-react";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import api from "@/lib/api";
+import { toast } from "sonner";
 
 /* =======================
    Types
 ======================= */
-type ReportType = "Post" | "User" | "Comment";
-
-type ReportItem = {
-  id: number;
-  node: string;
-  type: ReportType;
-  by: string;
+type Report = {
+  _id: string;
   reason: string;
-  time: string;
+  status: "pending" | "resolved" | "rejected";
+  details?: string;
+  adminNote?: string;
+  createdAt: string;
+  reporter?: {
+    fullname: string;
+    regNumber: string;
+  };
+  resolvedBy?: {
+    fullname: string;
+  };
 };
 
 /* =======================
-   Mock Data
+   Page
 ======================= */
-const reports: ReportItem[] = [
-  {
-    id: 1,
-    node: "",
-    type: "Post",
-    by: "Jiy Bis",
-    reason: "Nudity",
-    time: "11 May 2025",
-  },
-  {
-    id: 2,
-    node: "Testing User",
-    type: "User",
-    by: "Yarak Yarak",
-    reason: "Nudity",
-    time: "17 June 2025",
-  },
-  {
-    id: 3,
-    node: "",
-    type: "Comment",
-    by: "Karim Ali",
-    reason: "Spam",
-    time: "20 June 2025",
-  },
-];
+export default function AdminReportsPage() {
+  const LIMIT = 10;
 
-/* =======================
-   Component
-======================= */
-export default function ListReportsPage() {
-  const ITEMS_PER_PAGE = 10;
-
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  const [viewReport, setViewReport] = useState<Report | null>(null);
+  const [editReport, setEditReport] = useState<Report | null>(null);
+  const [adminNote, setAdminNote] = useState("");
 
   /* =======================
-     Filter + Pagination
+     Fetch Reports
   ======================= */
-  const filteredReports = reports.filter(
-    (r) =>
-      r.by.toLowerCase().includes(search.toLowerCase()) ||
-      r.reason.toLowerCase().includes(search.toLowerCase()) ||
-      r.type.toLowerCase().includes(search.toLowerCase())
-  );
+  const fetchReports = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/report/all-report-list", {
+        params: {
+          page,
+          limit: LIMIT,
+          q: search || undefined,
+        },
+      });
 
-  const totalPages = Math.ceil(
-    filteredReports.length / ITEMS_PER_PAGE
-  );
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedReports = filteredReports.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
+      console.log("report",res.data);
+      
+
+      if (res.data?.ok) {
+        setReports(res.data.items);
+        setTotal(res.data.total);
+      }
+    } catch {
+      toast.error("Failed to load reports");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, [page, search]);
+
+  /* =======================
+     Actions
+  ======================= */
+  const updateReport = async (status: "resolved" | "rejected") => {
+    if (!editReport) return;
+
+    try {
+      await api.patch(
+        `/report/single-report-up/${editReport._id}`,
+        {
+          status,
+          adminNote,
+        }
+      );
+
+      toast.success("Report updated");
+      setEditReport(null);
+      setAdminNote("");
+      fetchReports();
+    } catch {
+      toast.error("Update failed");
+    }
+  };
+
+  const deleteReport = async (id: string) => {
+    if (!confirm("Delete this report permanently?")) return;
+
+    try {
+      await api.delete(
+        `/report/single-report-delete/${id}`
+      );
+      toast.success("Report deleted");
+      fetchReports();
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+  const totalPages = Math.ceil(total / LIMIT);
 
   /* =======================
      UI
   ======================= */
   return (
     <div className="space-y-6 bg-white p-4 rounded-xl">
-      {/* ===== Page Header ===== */}
+      {/* Header */}
       <div className="flex items-center gap-3">
         <FileWarning className="h-6 w-6 text-[#10897E]" />
-        <h1 className="text-2xl font-semibold">List Reports</h1>
+        <h1 className="text-2xl font-semibold">
+          Reports Management
+        </h1>
       </div>
 
-      {/* ===== Table Card ===== */}
-      <div className="bg-white rounded-xl shadow border">
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="font-semibold">Reported Content</h2>
+      {/* Search */}
+      <div className="relative w-64">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" />
+        <Input
+          className="pl-9"
+          placeholder="Search reports..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+      </div>
 
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              className="pl-9"
-              placeholder="Search reports..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-        </div>
+      {/* Table */}
+      <div className="overflow-x-auto border rounded-xl">
+        <table className="min-w-[1000px] w-full text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-4 py-3">
+                Reporter
+              </th>
+              <th className="border px-4 py-3">
+                Reason
+              </th>
+              <th className="border px-4 py-3">
+                Status
+              </th>
+              <th className="border px-4 py-3">
+                Time
+              </th>
+              <th className="border px-4 py-3 text-right">
+                Actions
+              </th>
+            </tr>
+          </thead>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-[1000px] w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="border px-4 py-3 text-left">ID</th>
-                <th className="border px-4 py-3 text-left">Node</th>
-                <th className="border px-4 py-3 text-left">Type</th>
-                <th className="border px-4 py-3 text-left">By</th>
-                <th className="border px-4 py-3 text-left">Reason</th>
-                <th className="border px-4 py-3 text-left">Time</th>
-                <th className="border px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
+          <tbody>
+            {reports.map((r) => (
+              <tr
+                key={r._id}
+                className="hover:bg-gray-50"
+              >
+                <td className="border px-4 py-2">
+                  {r.reporter?.fullname || "-"}
+                  <div className="text-xs text-muted-foreground">
+                    {r.reporter?.regNumber}
+                  </div>
+                </td>
 
-            <tbody>
-              {paginatedReports.map((report) => (
-                <tr
-                  key={report.id}
-                  className="hover:bg-gray-50 transition"
-                >
-                  <td className="border px-4 py-2 font-medium">
-                    #{report.id}
-                  </td>
-                  <td className="border px-4 py-2">
-                    {report.node || "-"}
-                  </td>
-                  <td className="border px-4 py-2">
-                    <Badge variant="secondary">
-                      {report.type}
-                    </Badge>
-                  </td>
-                  <td className="border px-4 py-2">
-                    {report.by}
-                  </td>
-                  <td className="border px-4 py-2">
-                    <Badge
-                      variant={
-                        report.reason === "Spam"
-                          ? "outline"
-                          : "destructive"
+                <td className="border px-4 py-2">
+                  {r.reason}
+                </td>
+
+                <td className="border px-4 py-2">
+                  <Badge
+                    variant={
+                      r.status === "pending"
+                        ? "secondary"
+                        : r.status === "resolved"
+                        ? "outline"
+                        : "destructive"
+                    }
+                  >
+                    {r.status}
+                  </Badge>
+                </td>
+
+                <td className="border px-4 py-2">
+                  {new Date(
+                    r.createdAt
+                  ).toLocaleString()}
+                </td>
+
+                <td className="border px-4 py-2 text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => setViewReport(r)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => {
+                        setEditReport(r);
+                        setAdminNote(
+                          r.adminNote || ""
+                        );
+                      }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      onClick={() =>
+                        deleteReport(r._id)
                       }
                     >
-                      {report.reason}
-                    </Badge>
-                  </td>
-                  <td className="border px-4 py-2">
-                    {report.time}
-                  </td>
-                  <td className="border px-4 py-2 text-right">
-                    <div className="flex justify-end gap-2">
-                      {/* View */}
-                      <Button size="icon" variant="outline">
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
 
-                      {/* Update */}
-                      <Button size="icon" variant="outline">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+            {!loading && reports.length === 0 && (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="text-center py-6 text-muted-foreground"
+                >
+                  No reports found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-                      {/* Delete */}
-                      <Button size="icon" variant="destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+      {/* Pagination */}
+      <div className="flex justify-between items-center">
+        <span className="text-sm text-muted-foreground">
+          Page {page} of {totalPages || 1}
+        </span>
 
-              {paginatedReports.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center py-6 text-muted-foreground"
-                  >
-                    No reports found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-between items-center p-4 border-t text-sm">
-          <span className="text-muted-foreground">
-            Displaying {startIndex + 1}–
-            {Math.min(
-              startIndex + ITEMS_PER_PAGE,
-              filteredReports.length
-            )}{" "}
-            of {filteredReports.length}
-          </span>
-
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={currentPage === 1}
-              onClick={() =>
-                setCurrentPage((p) => p - 1)
-              }
-            >
-              Prev
-            </Button>
-            <Button size="sm">{currentPage}</Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={currentPage === totalPages}
-              onClick={() =>
-                setCurrentPage((p) => p + 1)
-              }
-            >
-              Next
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page === 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            Prev
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={page === totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Next
+          </Button>
         </div>
       </div>
+
+      {/* View Modal */}
+      <Dialog
+        open={!!viewReport}
+        onOpenChange={() => setViewReport(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Report Details
+            </DialogTitle>
+          </DialogHeader>
+
+          {viewReport && (
+            <div className="space-y-2 text-sm">
+              <p>
+                <b>Reason:</b>{" "}
+                {viewReport.reason}
+              </p>
+              <p>
+                <b>Status:</b>{" "}
+                {viewReport.status}
+              </p>
+              <p>
+                <b>Details:</b>{" "}
+                {viewReport.details || "-"}
+              </p>
+              <p>
+                <b>Admin Note:</b>{" "}
+                {viewReport.adminNote || "-"}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog
+        open={!!editReport}
+        onOpenChange={() => setEditReport(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Update Report
+            </DialogTitle>
+          </DialogHeader>
+
+          <Input
+            placeholder="Admin note"
+            value={adminNote}
+            onChange={(e) =>
+              setAdminNote(e.target.value)
+            }
+          />
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setEditReport(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() =>
+                updateReport("resolved")
+              }
+            >
+              Resolve
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() =>
+                updateReport("rejected")
+              }
+            >
+              Reject
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -118,7 +118,7 @@ export default function UserMenu() {
                   }`}
               >
                 <span className="flex items-center gap-3">
-                  <Icon className="h-4 w-4 text-[#10897E]" />
+                  <Icon className="h-4 w-4 text-purple-600" />
                   {item.title}
                 </span>
                 <ChevronDown className="h-4 w-4" />

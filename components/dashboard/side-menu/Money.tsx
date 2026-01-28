@@ -151,7 +151,7 @@ const menu: MenuItem[] = [
     children: [
       {
         title: "Withdraw List",
-        href: "/dashboard/withdraw",
+        href: "/dashboard/withdraws",
         icon: Settings,
       },
     ],
@@ -190,7 +190,7 @@ export default function Money() {
                       : "text-muted-foreground hover:bg-muted"
                   }`}
               >
-                <Icon className="h-4 w-4 text-[#10897E]" />
+                <Icon className="h-4 w-4 text-[#4CAF50]" />
                 {item.title}
               </Link>
             );
