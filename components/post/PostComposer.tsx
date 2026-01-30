@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ImageIcon, VideoIcon, Smile, X } from "lucide-react";
 import { useAppSelector } from "@/redux/hook/hook";
 import api from "@/lib/api";
+import Link from "next/link";
 
 /* ========================
    Types
@@ -209,12 +210,14 @@ export default function PostComposer({
         <CardContent className="p-2 sm:p-4">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 shrink-0">
-              <Image
+              <Link href={`/profile`}>
+                <Image
                 src={user?.image || "/avatar.png"}
                 alt={user?.name || "User"}
                 fill
                 className="rounded-full object-cover"
               />
+              </Link>
             </div>
 
             <Input
