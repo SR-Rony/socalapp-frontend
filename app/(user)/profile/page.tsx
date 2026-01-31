@@ -8,6 +8,20 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";// তোমার redux hook
 import Image from "next/image";
 import { useAppSelector } from "@/redux/hook/hook";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /* =======================
    Types
@@ -67,6 +81,10 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [cursor, setCursor] = useState<any>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
+
+  const [editingPost, setEditingPost] = useState<any>(null);
+const [editText, setEditText] = useState("");
+const [editPrivacy, setEditPrivacy] = useState("public");
 
   /* =======================
      Fetch full profile from API
@@ -161,6 +179,60 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
+
+  //handle edit post
+  const handleEdit = (post: any) => {
+  setEditingPost(post);
+  setEditText(post.text || "");
+  setEditPrivacy(post.privacy || "public");
+};
+  //handle delete post
+  const handleDelete = async (id: string) => {
+  const ok = confirm("Are you sure you want to delete this post?");
+  if (!ok) return;
+
+  try {
+    await api.delete(`users/me/posts/${id}`);
+
+    // ✅ UI থেকে সাথে সাথে remove করার জন্য
+    setPosts((prev) => prev.filter((post) => post._id !== id));
+    toast.success("Post deleted successfully");
+
+  } catch (err: any) {
+    toast(err?.response?.data?.message || "Delete failed");
+  }
+};
+
+//handleSaveEdit button
+const handleSaveEdit = async () => {
+  if (!editingPost) return;
+
+  try {
+    const res = await api.patch(`users/me/posts/${editingPost._id}`, {
+      text: editText,
+      privacy: editPrivacy,
+    });
+
+    // 🔥 UI update
+   setPosts((prev) =>
+      prev.map((p) =>
+        p._id === editingPost._id
+          ? {
+              ...p,
+              ...res.data.item,
+              author: p.author,      // 🔥 force keep author
+            }
+          : p
+      )
+    );
+
+    toast.success("Post updated");
+    setEditingPost(null);
+  } catch (err: any) {
+    toast.error(err?.response?.data?.message || "Update failed");
+  }
+};
+
 
   if (!profile) return <p className="text-muted-foreground">Loading profile...</p>;
 
@@ -344,7 +416,7 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
                   {post.author.avatar?.url && (
-                    <img
+                    <Image
                       src={post.author.avatar.url}
                       className="w-full h-full object-cover"
                     />
@@ -360,10 +432,10 @@ export default function ProfilePage() {
 
                 {post.canEdit && (
                   <div className="ml-auto flex gap-2">
-                    <Button size="sm" variant="outline">
+                    <Button onClick={()=>handleEdit(post)} size="sm" variant="outline">
                       Edit
                     </Button>
-                    <Button size="sm" variant="destructive">
+                    <Button onClick={()=>handleDelete(post._id)} size="sm" variant="destructive">
                       Delete
                     </Button>
                   </div>
@@ -377,7 +449,7 @@ export default function ProfilePage() {
               {post.medias?.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">
                   {post.medias.map((m, i) => (
-                    <img
+                    <Image
                       key={i}
                       src={m.url}
                       className="rounded-lg object-cover"
@@ -405,6 +477,49 @@ export default function ProfilePage() {
         </main>
       </div>
     </div>
+    {/* ===== Edit Post Dialog ===== */}
+    <Dialog open={!!editingPost} onOpenChange={() => setEditingPost(null)}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Post</DialogTitle>
+        </DialogHeader>
+
+        {/* Text */}
+        <Textarea
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          placeholder="What's on your mind?"
+          className="min-h-[120px]"
+        />
+
+        {/* Privacy */}
+        <Select value={editPrivacy} onValueChange={setEditPrivacy}>
+          <SelectTrigger>
+            <SelectValue placeholder="Privacy" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="public">Public</SelectItem>
+            <SelectItem value="friends">Friends</SelectItem>
+            <SelectItem value="only_me">Only me</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2 pt-3">
+          <Button
+            variant="ghost"
+            onClick={() => setEditingPost(null)}
+          >
+            Cancel
+          </Button>
+
+          <Button onClick={handleSaveEdit}>
+            Save
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
   </div>
 );
 

@@ -10,6 +10,15 @@ import {
   ChevronDown,
   CirclePlus,
   Menu,
+  LogOut,
+  Keyboard,
+  LayoutDashboard,
+  Settings,
+  LifeBuoy,
+  Wallet,
+  Star,
+  Crown,
+  User,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -58,6 +67,7 @@ export default function Navbar() {
     toast.success("You’re logged out. See you again soon!");
     router.push("/login");
   };
+  
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-background">
@@ -144,58 +154,84 @@ export default function Navbar() {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuItem className="font-semibold cursor-default">
+                {/* User name */}
+                <DropdownMenuItem className="font-semibold cursor-default flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
                   {userName}
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
+                  <Link href="/profile" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem className="text-indigo-600 font-medium">
+                <DropdownMenuItem className="text-indigo-600 font-medium flex items-center gap-2">
+                  <Crown className="h-4 w-4" />
                   Upgrade to Pro
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem className="flex justify-between">
-                  <span>Points</span>
+                  <span className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-muted-foreground" />
+                    Points
+                  </span>
                   <span className="font-medium">5</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem className="flex justify-between">
-                  <span>Wallet</span>
+                  <span className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-muted-foreground" />
+                    Wallet
+                  </span>
                   <span className="font-medium">$2,386.96</span>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem asChild>
-                  <Link href="/support">Support Center</Link>
+                  <Link href="/support" className="flex items-center gap-2">
+                    <LifeBuoy className="h-4 w-4" />
+                    Support Center
+                  </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Link href="/settings">Settings</Link>
+                  <Link href="/settings" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">Admin Panel</Link>
-                </DropdownMenuItem>
+                {user?.role === "ADMIN" && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="flex items-center gap-2">
+                      <LayoutDashboard className="h-4 w-4" />
+                      Admin Panel
+                    </Link>
+                  </DropdownMenuItem>
+                )}
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem>
+                <DropdownMenuItem className="flex items-center gap-2">
+                  <Keyboard className="h-4 w-4" />
                   Keyboard Shortcuts
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
-                  className="text-red-500 focus:text-red-500"
+                  className="text-red-500 focus:text-red-500 flex items-center gap-2"
                   onClick={handleLogout}
                 >
+                  <LogOut className="h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
           </div>
 
         </div>
