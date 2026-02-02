@@ -4,75 +4,91 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import Post, { PostData } from "./Post";
 
-/* 🔹 Backend item type (minimum needed) */
 type FeedItem = {
-  _id: string;
-  author: {
-    name: string;
-    avatar?: { url: string } | string;
+  data: {
+    author: {
+      name: string;
+      avatar?: {
+        key?: string;
+        url?: string;
+        provider?: string;
+      };
+    };
+    text: string;
+    medias: {
+      key?: string;
+      url?: string;
+      type: "image" | "video";
+      provider?: string;
+    }[];
+    createdAt: string;
   };
-  type: "image" | "video";
-  text: string;
-  medias: { url: string; type: "image" | "video" }[];
-  createdAt: string;
 };
 
 export default function PostList() {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
-  console.log("post data",posts);
-  
 
   useEffect(() => {
-  const fetchFeed = async () => {
-    try {
-      const res = await api.get("/posts/feed", { params: { limit: 10 } });
+    const fetchFeed = async () => {
+      try {
+        const res = await api.get("/posts/feed", { params: { limit: 10 } });
 
-      console.log("feed data", res.data.items);
+        if (res.data?.success && Array.isArray(res.data.items)) {
+          const mappedPosts: PostData[] = res.data.items.map(
+            (item: FeedItem) => {
+              const post = item.data;
+              const mediaItem = post.medias?.[0];
 
-      if (res.data?.success && Array.isArray(res.data.items)) {
-        const mappedPosts: PostData[] = res.data.items.map((item: FeedItem) => {
-          const post = item.data; // 🔥 মূল post data
+              return {
+                user: {
+                  name: post.author?.name || "Unknown",
+                  avatar: post.author?.avatar
+                    ? {
+                        key: post.author.avatar.key,
+                        url: post.author.avatar.url,
+                        provider: post.author.avatar.provider,
+                      }
+                    : "https://ui-avatars.com/api/?name=User",
+                },
+                time: formatTime(post.createdAt),
+                content: post.text,
+                media: mediaItem
+                  ? {
+                      type: mediaItem.type,
+                      key: mediaItem.key,
+                      url: mediaItem.url,
+                      provider: mediaItem.provider,
+                    }
+                  : null,
+              };
+            }
+          );
 
-          const mediaItem = post.medias?.[0];
-
-          return {
-            user: {
-              name: post.author?.name || "Unknown",
-              avatar:
-                typeof post.author?.avatar === "string"
-                  ? post.author.avatar
-                  : post.author?.avatar?.url ||
-                    "https://ui-avatars.com/api/?name=User",
-            },
-            time: formatTime(post.createdAt),
-            content: post.text,
-            media: mediaItem?.url,
-            mediaType: mediaItem?.type || "image",
-          };
-        });
-
-        setPosts(mappedPosts);
-      } else {
+          setPosts(mappedPosts);
+        } else {
+          setPosts([]);
+        }
+      } catch (error) {
+        console.error("Feed load failed", error);
         setPosts([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Feed load failed", error);
-      setPosts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchFeed();
-}, []);
-
+    fetchFeed();
+  }, []);
 
   if (loading)
-    return <p className="text-center text-muted-foreground">Loading feed...</p>;
+    return (
+      <p className="text-center text-muted-foreground">Loading feed...</p>
+    );
 
   if (!posts.length)
-    return <p className="text-center text-muted-foreground">No posts found</p>;
+    return (
+      <p className="text-center text-muted-foreground">No posts found</p>
+    );
 
   return (
     <div className="flex flex-col gap-4">
