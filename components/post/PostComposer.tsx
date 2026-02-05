@@ -12,6 +12,8 @@ import { ImageIcon, VideoIcon, Smile, X } from "lucide-react";
 import { useAppSelector } from "@/redux/hook/hook";
 import api from "@/lib/api";
 import Link from "next/link";
+import { Sign } from "crypto";
+import { SignedImage } from "../common/SignedImage";
 
 /* ========================
    Types
@@ -38,6 +40,9 @@ export default function PostComposer({
   onSuccess?: (post: any) => void;
 }) {
   const { user } = useAppSelector((state: any) => state.auth);
+
+  console.log("user fdas",user);
+  
 
   /* ========================
      Refs
@@ -210,13 +215,14 @@ export default function PostComposer({
         <CardContent className="p-2 sm:p-4">
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 shrink-0">
-              <Link href={`/profile`}>
-                <Image
-                src={user?.image || "/avatar.png"}
-                alt={user?.name || "User"}
-                fill
-                className="rounded-full object-cover"
-              />
+              <Link href={`/profile/${user._id}`}>
+              <SignedImage
+                  keyPath={user?.avatar?.key}
+                  url={user?.avatar?.url} 
+                  provider={user?.avatar?.provider}
+                  alt="profile"
+                  className="rounded-full object-cover"
+                />
               </Link>
             </div>
 
@@ -255,10 +261,11 @@ export default function PostComposer({
           {/* User */}
           <div className="flex items-center gap-3 px-4 py-3">
             <div className="relative w-10 h-10">
-              <Image
-                src={user?.image || "/avatar.png"}
-                alt={user?.name || "User"}
-                fill
+              <SignedImage
+                keyPath={user?.avatar?.key}
+                url={user?.avatar?.url} 
+                provider={user?.avatar?.provider}
+                alt="profile"
                 className="rounded-full object-cover"
               />
             </div>

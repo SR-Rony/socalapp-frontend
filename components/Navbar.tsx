@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar,AvatarFallback} from "@/components/ui/avatar";
 
 import {
   Sheet,
@@ -43,11 +43,13 @@ import Sidebar from "@/components/sidebar/Sidebar";
 import { useAppSelector, useAppDispatch } from "@/redux/hook/hook";
 import { logout } from "@/redux/features/authSlice";
 import { toast } from "sonner";
+import { SignedImage } from "./common/SignedImage";
 
 export default function Navbar() {
   const { user } = useAppSelector((state: any) => state.auth);
   const dispatch = useAppDispatch();
   const router = useRouter();
+  
 
   // =============================
   // Safe username (first 2 words)
@@ -147,8 +149,18 @@ export default function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 outline-none">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={user?.avatar || "/avatar.png"} />
+                  {user?.avatar?.url 
+                  ?
+                  <SignedImage
+                    keyPath={user?.avatar?.key}
+                    url={user?.avatar?.url}
+                    provider={user?.avatar?.provider}
+                    alt="profile"
+                    className="rounded-full object-cover"
+                  />
+                  :
                   <AvatarFallback>{userName}</AvatarFallback>
+                  }
                 </Avatar>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </DropdownMenuTrigger>
@@ -161,7 +173,10 @@ export default function Navbar() {
                 </DropdownMenuItem>
 
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center gap-2">
+                  <Link
+                    href={user?._id ? `/profile/${user._id}` : "/login"}
+                    className="flex items-center gap-2"
+                  >
                     <User className="h-4 w-4" />
                     Profile
                   </Link>

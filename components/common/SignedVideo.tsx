@@ -1,42 +1,32 @@
-// src/components/common/SignedVideo.tsx
-"use client";
-
-import { memo } from "react";
 import { useResolvedMediaUrl } from "@/hooks/useResolvedMediaUrl";
+import { memo } from "react";
 
-type Props = {
+type SignedVideoProps = React.VideoHTMLAttributes<HTMLVideoElement> & {
   url?: string;
   keyPath?: string;
-  provider?: string;
-  className?: string;
-  controls?: boolean;
-  muted?: boolean;
-  autoPlay?: boolean;
+  provider?: string; // "wasabi"
+  posterUrl?: string; // optional
+  showLoader?: boolean;
 };
 
 function SignedVideoBase({
   url,
   keyPath,
   provider,
-  className,
-  controls = true,
-  muted = false,
-  autoPlay = false,
-}: Props) {
-  const finalUrl = useResolvedMediaUrl({ url, keyPath, provider });
+  poster,
+  posterUrl,
+  showLoader = false,
+  ...rest
+}: SignedVideoProps) {
+  const  finalUri  = useResolvedMediaUrl({ url, keyPath, provider });
 
-  if (!finalUrl) return null;
+  console.log("video final",finalUri);
+  
 
-  return (
-    <video
-      src={finalUrl}
-      controls={controls}
-      muted={muted}
-      autoPlay={autoPlay}
-      playsInline
-      className={`w-full rounded-lg ${className ?? ""}`}
-    />
-  );
+  if (!finalUri && showLoader) return <div>Loading...</div>;
+  if (!finalUri) return null;
+
+  return <video {...rest} src={finalUri} poster={posterUrl || poster} />;
 }
 
 export const SignedVideo = memo(SignedVideoBase);

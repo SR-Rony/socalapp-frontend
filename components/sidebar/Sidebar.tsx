@@ -124,8 +124,11 @@ export default function Sidebar() {
     !!item.href && !item.children;
 
   return (
-    <div className="flex h-full flex-col px-2 py-4">
-      <nav className="space-y-1">
+    // 🔥 Full height + scroll enabled
+    <div className="flex h-screen flex-col px-2 py-4 overflow-hidden">
+      
+      {/* 🔥 Scroll only menu area */}
+      <nav className="flex-1 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
         {menu.map((item) => {
           const Icon = item.icon;
 
@@ -207,3 +210,4 @@ export default function Sidebar() {
     </div>
   );
 }
+

@@ -8,6 +8,8 @@ type FeedItem = {
   data: {
     author: {
       name: string;
+      username: string;
+      _id: string;
       avatar?: {
         key?: string;
         url?: string;
@@ -28,11 +30,13 @@ type FeedItem = {
 export default function PostList() {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
     const fetchFeed = async () => {
       try {
         const res = await api.get("/posts/feed", { params: { limit: 10 } });
+        
 
         if (res.data?.success && Array.isArray(res.data.items)) {
           const mappedPosts: PostData[] = res.data.items.map(
@@ -43,13 +47,17 @@ export default function PostList() {
               return {
                 user: {
                   name: post.author?.name || "Unknown",
+                  username: post.author?.username || "unknown",
+                  userId: post.author?._id || "unknown",
                   avatar: post.author?.avatar
                     ? {
                         key: post.author.avatar.key,
                         url: post.author.avatar.url,
                         provider: post.author.avatar.provider,
                       }
-                    : "https://ui-avatars.com/api/?name=User",
+                    : {
+                        url: "https://ui-avatars.com/api/?name=User",
+                      },
                 },
                 time: formatTime(post.createdAt),
                 content: post.text,
@@ -93,7 +101,12 @@ export default function PostList() {
   return (
     <div className="flex flex-col gap-4">
       {posts.map((post, i) => (
-        <Post key={i} {...post} />
+        <Post
+          key={i}
+          {...post}
+          onEdit={(p) => console.log("Edit post:", p)}
+          onDelete={(id) => console.log("Delete post:", id)}
+        />
       ))}
     </div>
   );
