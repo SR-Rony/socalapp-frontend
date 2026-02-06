@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Avatar,AvatarFallback} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import {
   Sheet,
@@ -45,11 +45,23 @@ import { logout } from "@/redux/features/authSlice";
 import { toast } from "sonner";
 import { SignedImage } from "./common/SignedImage";
 
+// ✅ Type definition for user
+type UserType = {
+  _id: string;
+  name: string;
+  role?: string;
+  avatar?: {
+    key?: string;
+    url?: string;
+    provider?: string;
+  };
+};
+
 export default function Navbar() {
-  const { user } = useAppSelector((state: any) => state.auth);
+  const { user } = useAppSelector((state) => state.auth) as { user: UserType | null };
+  
   const dispatch = useAppDispatch();
   const router = useRouter();
-  
 
   // =============================
   // Safe username (first 2 words)
@@ -69,7 +81,6 @@ export default function Navbar() {
     toast.success("You’re logged out. See you again soon!");
     router.push("/login");
   };
-  
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-background">
@@ -149,18 +160,23 @@ export default function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1 outline-none">
                 <Avatar className="h-9 w-9">
-                  {user?.avatar?.url 
-                  ?
-                  <SignedImage
-                    keyPath={user?.avatar?.key}
-                    url={user?.avatar?.url}
-                    provider={user?.avatar?.provider}
-                    alt="profile"
-                    className="rounded-full object-cover"
-                  />
-                  :
-                  <AvatarFallback>{userName}</AvatarFallback>
-                  }
+                  {user?.avatar?.url ? (
+                    <SignedImage
+                      url={user.avatar.url ? `${user.avatar.url}?t=${Date.now()}` : undefined} // cache-busting
+                      keyPath={user.avatar.key}
+                      provider={user.avatar.provider}
+                      alt="profile"
+                      className="w-10 h-10 object-cover rounded-full"
+                    />
+                  ) : (
+                    <AvatarFallback>
+                      {user?.name
+                        ?.split(" ")
+                        .map((w: string) => w[0])
+                        .join("")
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </DropdownMenuTrigger>

@@ -7,28 +7,24 @@ import { Edit3, MoreHorizontal, Trash2 } from "lucide-react";
 import { useAppSelector } from "@/redux/hook/hook";
 import { useEffect, useRef, useState } from "react";
 
+export type Media = {
+  type: "image" | "video";
+  key?: string;
+  url?: string;
+  provider?: string;
+};
+
 export type PostData = {
   _id: string;
   authorId: string;
-
   user: {
     userId: string;
     name: string;
-    avatar?: {
-      key?: string;
-      url?: string;
-      provider?: string;
-    };
+    avatar?: Media;
   };
-
   time: string;
   content: string;
-  media?: {
-    type: "image" | "video";
-    key?: string;
-    url?: string;
-    provider?: string;
-  } | null;
+  media?: Media | null;
 };
 
 type PostProps = PostData & {
@@ -46,28 +42,24 @@ export default function Post({
   onEdit,
   onDelete,
 }: PostProps) {
-  const { user: me } = useAppSelector((s: any) => s.auth);
-  const isMe = me?._id === authorId;
+  const { user: me } = useAppSelector((state) => state.auth);
+  const avatar = user.userId === me?._id ? me.avatar : user.avatar;
+  const isMe = me?._id === user.userId;
 
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // 🔥 outside click handler (Facebook style)
   useEffect(() => {
     if (!open) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node)
-      ) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
   return (
@@ -76,13 +68,15 @@ export default function Post({
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
           <Link href={`/profile/${user.userId}`} className="w-10 h-10">
-            <SignedImage
-              keyPath={user.avatar?.key}
-              url={user.avatar?.url}
-              provider={user.avatar?.provider}
-              alt="profile"
-              className="rounded-full object-cover"
-            />
+            {avatar?.url && (
+              <SignedImage
+                keyPath={avatar.key}
+                url={avatar.url+"?v=" + Date.now()}
+                provider={avatar.provider}
+                alt="avatar"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            )}
           </Link>
 
           <div>
@@ -96,7 +90,6 @@ export default function Post({
           </div>
         </div>
 
-        {/* 🔥 Facebook-style 3 dot */}
         {isMe && (
           <div className="relative" ref={menuRef}>
             <button

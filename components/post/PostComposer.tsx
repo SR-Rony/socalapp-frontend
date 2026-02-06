@@ -221,7 +221,7 @@ export default function PostComposer({
                   url={user?.avatar?.url} 
                   provider={user?.avatar?.provider}
                   alt="profile"
-                  className="rounded-full object-cover"
+                  className="rounded-full w-10 h-10 object-cover"
                 />
               </Link>
             </div>

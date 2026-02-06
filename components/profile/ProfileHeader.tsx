@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { SignedImage } from "../common/SignedImage";
 import { Camera } from "lucide-react";
+import { updateUser, fetchMe } from "@/redux/features/authSlice";
+import { useAppDispatch } from "@/redux/hook/hook";
 
 export default function ProfileHeader({
   user,
@@ -16,6 +18,7 @@ export default function ProfileHeader({
 }) {
   const [profile, setProfile] = useState(user);
   const [uploading, setUploading] = useState(false);
+  const dispatch = useAppDispatch();
 
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -24,8 +27,6 @@ export default function ProfileHeader({
   useEffect(() => {
     setProfile(user);
   }, [user]);
-  
-  
 
   /* ======================
      Upload Avatar
@@ -45,13 +46,14 @@ export default function ProfileHeader({
       const res = await api.post("/users/me/avatar", formData);
 
       if (res.data?.ok) {
-        const updated = {
-          ...profile,
-          avatar: res.data.avatar,
-        };
+        const updated = { ...profile, avatar: res.data.avatar };
 
         setProfile(updated);
         onUserUpdate?.(updated);
+
+        // ✅ type-safe dispatch
+        dispatch(updateUser({ avatar: res.data.avatar }));
+        dispatch(fetchMe() as any);
 
         toast.success("Profile picture updated");
       }
@@ -88,6 +90,9 @@ export default function ProfileHeader({
         setProfile(updated);
         onUserUpdate?.(updated);
 
+        dispatch(updateUser({ cover: res.data.user.cover }));
+        dispatch(fetchMe());
+
         toast.success("Cover photo updated");
       }
     } catch {
@@ -98,42 +103,36 @@ export default function ProfileHeader({
   };
 
   /* ======================
-     handleFollowToggle
+     Follow / Unfollow
   ====================== */
+  const handleFollowToggle = async () => {
+    if (profile.isMe) return;
 
-const handleFollowToggle = async () => {
-  if (profile.isMe) return;
+    const prev = profile;
 
-  const prev = profile;
+    const updated = {
+      ...profile,
+      isFollowing: !profile.isFollowing,
+      followerCount: profile.isFollowing
+        ? profile.followerCount - 1
+        : profile.followerCount + 1,
+    };
 
-  // 🔥 optimistic UI
-  const updated = {
-    ...profile,
-    isFollowing: !profile.isFollowing,
-    followerCount: profile.isFollowing
-      ? profile.followerCount - 1
-      : profile.followerCount + 1,
-  };
+    setProfile(updated);
+    onUserUpdate?.(updated);
 
-  setProfile(updated);
-  onUserUpdate?.(updated);
-
-  try {
-    if (prev.isFollowing) {
-      // ✅ UNFOLLOW
-      await api.delete(`/follow/${profile._id}`);
-    } else {
-      // ✅ FOLLOW
-      await api.post(`/follow/${profile._id}`);
+    try {
+      if (prev.isFollowing) {
+        await api.delete(`/follow/${profile._id}`);
+      } else {
+        await api.post(`/follow/${profile._id}`);
+      }
+    } catch (err) {
+      setProfile(prev);
+      onUserUpdate?.(prev);
+      toast.error("Follow action failed");
     }
-  } catch (err) {
-    // ❌ rollback
-    setProfile(prev);
-    onUserUpdate?.(prev);
-    toast.error("Follow action failed");
-  }
-};
-
+  };
 
   return (
     <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -142,7 +141,7 @@ const handleFollowToggle = async () => {
         {profile.cover?.url && (
           <SignedImage
             keyPath={profile.cover.key}
-            url={profile.cover.url}
+            url={profile.cover.url ? `${profile.cover.url}?t=${Date.now()}` : undefined} // cache-busting
             provider={profile.cover.provider}
             alt="cover"
             className="w-full h-full object-cover pointer-events-none"
@@ -180,7 +179,7 @@ const handleFollowToggle = async () => {
             {profile.avatar?.url && (
               <SignedImage
                 keyPath={profile.avatar.key}
-                url={profile.avatar.url}
+                url={profile.avatar.url ? `${profile.avatar.url}?t=${Date.now()}` : undefined} // cache-busting
                 provider={profile.avatar.provider}
                 alt="avatar"
                 className="w-full h-full object-cover pointer-events-none"
@@ -210,24 +209,23 @@ const handleFollowToggle = async () => {
           </div>
 
           <div className="flex-1">
-              <h1 className="text-2xl font-bold">{profile.name}</h1>
-              <p className="text-muted-foreground">@{profile.username}</p>
+            <h1 className="text-2xl font-bold">{profile.name}</h1>
+            <p className="text-muted-foreground">@{profile.username}</p>
 
-              <div className="flex items-center gap-3 mt-2">
-                <p className="text-sm">
-                  {profile.followerCount} followers
-                </p>
-              </div>
+            <div className="flex items-center gap-3 mt-2">
+              <p className="text-sm">{profile.followerCount} followers</p>
             </div>
-            {!profile.isMe && (
-                <Button
-                  size="sm"
-                  variant={profile.isFollowing ? "outline" : "default"}
-                  onClick={handleFollowToggle}
-                >
-                  {profile.isFollowing ? "Following" : "Follow"}
-                </Button>
-              )}
+          </div>
+
+          {!profile.isMe && (
+            <Button
+              size="sm"
+              variant={profile.isFollowing ? "outline" : "default"}
+              onClick={handleFollowToggle}
+            >
+              {profile.isFollowing ? "Following" : "Follow"}
+            </Button>
+          )}
         </div>
       </div>
     </div>
