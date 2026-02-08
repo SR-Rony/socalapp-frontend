@@ -40,8 +40,6 @@ export default function PostComposer({
   onSuccess?: (post: any) => void;
 }) {
   const { user } = useAppSelector((state: any) => state.auth);
-
-  console.log("user fdas",user);
   
 
   /* ========================

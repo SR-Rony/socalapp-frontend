@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import api from "@/lib/api";
-import { useAppDispatch } from "@/redux/hook/hook";
-import { addStory } from "@/redux/features/storySlice";
+import { useAppDispatch, useAppSelector } from "@/redux/hook/hook";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { ImageIcon, Video } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
+import { addStoryFeedItem } from "@/redux/features/storySlice";
 
 // ======================
 // Types
@@ -18,66 +18,139 @@ type Privacy = "public" | "friends" | "only_me";
 
 type MediaPayload = {
   url: string;
+  key?: string;
   provider?: string;
 };
 
-// ======================
-// Component
-// ======================
 interface StoryComposerProps {
   open: boolean;
   onClose: () => void;
 }
 
+// ======================
+// Component
+// ======================
 export default function StoryComposer({ open, onClose }: StoryComposerProps) {
   const dispatch = useAppDispatch();
+  const me = useAppSelector((s) => s.auth.user);
 
   const [type, setType] = useState<StoryType>("text");
   const [privacy, setPrivacy] = useState<Privacy>("public");
-  const [text, setText] = useState("");
-  const [backgroundUrl, setBackgroundUrl] = useState("");
-  const [mediaUrl, setMediaUrl] = useState("");
+  const [text, setText] = useState<string>("");
+  const [backgroundUrl, setBackgroundUrl] = useState<string>("");
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaUploading, setMediaUploading] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // ======================
+  // File select
+  // ======================
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.length) return;
+    setMediaFile(e.target.files[0]);
+  };
+
+  // ======================
+  // Upload file to Wasabi
+  // ======================
+  const uploadMedia = async (): Promise<MediaPayload | null> => {
+    if (!mediaFile) return null;
+
+    const formData = new FormData();
+    formData.append("file", mediaFile);
+
+    try {
+      setMediaUploading(true);
+      const endpoint = type === "image" ? "/upload/image" : "/upload/video";
+
+      const res = await api.post(endpoint, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (res.data?.ok && res.data?.url) {
+        // ✅ return both key & url
+        return {
+          url: res.data.url,
+          key: res.data.key,
+          provider: res.data.provider || "wasabi",
+        };
+      } else {
+        toast.error(res.data?.message || "Upload failed");
+        return null;
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Upload failed");
+      return null;
+    } finally {
+      setMediaUploading(false);
+    }
+  };
 
   // ======================
   // Submit Story
   // ======================
   const submitStory = async () => {
-    try {
-      setLoading(true);
+    if (loading) return;
+    if (!me) return toast.error("Unauthorized");
 
-      const payload: {
-        type: StoryType;
-        privacy: Privacy;
-        text?: string;
-        backgroundUrl?: string;
-        textStyle?: { align: string };
-        media?: MediaPayload;
-      } = { type, privacy };
+    setLoading(true);
+
+    try {
+      let media: MediaPayload | undefined = undefined;
+
+      if (type !== "text") {
+        const uploaded = await uploadMedia();
+        if (!uploaded) return;
+        media = uploaded;
+      }
+
+      if (type === "text" && !text.trim()) {
+        toast.error("Text required");
+        return;
+      }
+
+      // ======================
+      // Story payload
+      // ======================
+      const payload: any = { type, privacy };
 
       if (type === "text") {
-        if (!text.trim()) {
-          toast.error("Text required");
-          return;
-        }
-        payload.text = text;
+        payload.text = text.trim();
         payload.backgroundUrl = backgroundUrl || "";
         payload.textStyle = { align: "center" };
       } else {
-        if (!mediaUrl.trim()) {
-          toast.error("Media URL required");
-          return;
-        }
-        payload.media = { url: mediaUrl, provider: "wasabi" };
+        payload.media = media;
       }
 
+      // ======================
+      // POST story
+      // ======================
       const res = await api.post("/stories", payload);
 
-      if (res.data.success) {
-        dispatch(addStory(res.data.story));
+      if (res.data?.success && res.data?.story) {
+        const story = res.data.story;
+
+        // ✅ Redux feed item
+        const feedItem = {
+          _id: story._id,
+          ownerId: me._id,
+          count: 1,
+          isSeen: true,
+          isMe: true,
+          owner: {
+            _id: me._id,
+            name: me.name,
+            avatar: me.avatar,
+          },
+          lastStory: story,
+        };
+
+        dispatch(addStoryFeedItem(feedItem));
         toast.success("Story posted 🎉");
         reset();
         onClose();
+      } else {
+        toast.error("Story failed");
       }
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Story failed");
@@ -89,7 +162,7 @@ export default function StoryComposer({ open, onClose }: StoryComposerProps) {
   const reset = () => {
     setText("");
     setBackgroundUrl("");
-    setMediaUrl("");
+    setMediaFile(null);
     setType("text");
   };
 
@@ -97,57 +170,74 @@ export default function StoryComposer({ open, onClose }: StoryComposerProps) {
   // Render
   // ======================
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md p-0 overflow-hidden">
         {/* HEADER */}
-        <div className="border-b p-4 font-semibold text-center">Create Story</div>
+        <div className="border-b p-4 text-center font-semibold">
+          Create Story
+        </div>
 
-        {/* TYPE SWITCH */}
+        {/* TYPE BUTTONS */}
         <div className="flex gap-2 p-3">
           <Button
+            type="button"
             variant={type === "text" ? "default" : "outline"}
-            onClick={() => setType("text")}
             className="flex-1"
+            onClick={() => setType("text")}
           >
             Text
           </Button>
           <Button
+            type="button"
             variant={type === "image" ? "default" : "outline"}
-            onClick={() => setType("image")}
             className="flex-1"
+            onClick={() => setType("image")}
           >
             <ImageIcon size={16} className="mr-1" /> Image
           </Button>
           <Button
+            type="button"
             variant={type === "video" ? "default" : "outline"}
-            onClick={() => setType("video")}
             className="flex-1"
+            onClick={() => setType("video")}
           >
             <Video size={16} className="mr-1" /> Video
           </Button>
         </div>
 
         {/* BODY */}
-        <div className="p-4 space-y-3">
+        <div className="flex flex-col space-y-3 p-4">
           {type === "text" && (
-            <Textarea
-              placeholder="Write something..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              maxLength={500}
-            />
+            <>
+              <Textarea
+                placeholder="Write something..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                maxLength={500}
+              />
+              <input
+                placeholder="Background image url (optional)"
+                value={backgroundUrl}
+                onChange={(e) => setBackgroundUrl(e.target.value)}
+                className="w-full rounded border px-3 py-2 text-sm"
+              />
+            </>
           )}
 
-          {(type === "image" || type === "video") && (
-            <input
-              placeholder="Media URL"
-              value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
-              className="w-full rounded border px-3 py-2 text-sm"
-            />
+          {type !== "text" && (
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept={type === "image" ? "image/*" : "video/*"}
+                onChange={handleFileChange}
+                className="w-full rounded border px-3 py-2 text-sm"
+              />
+              <div className="min-h-[18px] text-xs text-muted-foreground">
+                {mediaUploading && "Uploading..."}
+              </div>
+            </div>
           )}
 
-          {/* PRIVACY */}
           <select
             value={privacy}
             onChange={(e) => setPrivacy(e.target.value as Privacy)}
@@ -161,10 +251,14 @@ export default function StoryComposer({ open, onClose }: StoryComposerProps) {
 
         {/* FOOTER */}
         <div className="flex justify-end gap-2 border-t p-4">
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} type="button">
             Cancel
           </Button>
-          <Button onClick={submitStory} disabled={loading}>
+          <Button
+            onClick={submitStory}
+            disabled={loading || mediaUploading}
+            type="button"
+          >
             {loading ? "Posting..." : "Share"}
           </Button>
         </div>
