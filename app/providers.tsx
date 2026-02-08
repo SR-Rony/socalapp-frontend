@@ -8,9 +8,6 @@ import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/sidebar/Sidebar";
 import RightSidebar from "@/components/sidebar/RightSidebar";
 import AppHydration from "./AppHydration";
-import { useEffect } from "react";
-import { connectSocket } from "@/lib/socket";
-import { useDispatch } from "react-redux"; // 🔥 useDispatch inside component
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!;
 
@@ -26,8 +23,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ReduxProvider store={store}>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <AppHydration>
-          <SocketInitializer /> {/* 🔥 Socket setup inside provider */}
+        <AppHydration> {/* 🔥 Socket setup inside provider */}
           <Navbar />
           {!hideLayout ? (
             <div className="grid grid-cols-12 container mx-auto gap-4">
@@ -48,22 +44,4 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       </GoogleOAuthProvider>
     </ReduxProvider>
   );
-}
-
-// 🔥 separate component to initialize socket inside Redux context
-function SocketInitializer() {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    const socket = connectSocket(token, dispatch);
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [dispatch]);
-
-  return null;
 }

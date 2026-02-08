@@ -2,72 +2,85 @@
 
 import { useState } from "react";
 import api from "@/lib/api";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Upload, ImageIcon, Video } from "lucide-react";
+import { useAppDispatch } from "@/redux/hook/hook";
+import { addStory } from "@/redux/features/storySlice";
+import { Dialog, DialogContent } from "../ui/dialog";
+import { Button } from "../ui/button";
+import { ImageIcon, Video } from "lucide-react";
+import { Textarea } from "../ui/textarea";
 import { toast } from "sonner";
 
-/* ======================
-   Types
-====================== */
+// ======================
+// Types
+// ======================
 type StoryType = "text" | "image" | "video";
 type Privacy = "public" | "friends" | "only_me";
 
-export default function StoryComposer({
-  open,
-  onClose,
-}: {
+type MediaPayload = {
+  url: string;
+  provider?: string;
+};
+
+// ======================
+// Component
+// ======================
+interface StoryComposerProps {
   open: boolean;
   onClose: () => void;
-}) {
+}
+
+export default function StoryComposer({ open, onClose }: StoryComposerProps) {
+  const dispatch = useAppDispatch();
+
   const [type, setType] = useState<StoryType>("text");
   const [privacy, setPrivacy] = useState<Privacy>("public");
-
   const [text, setText] = useState("");
   const [backgroundUrl, setBackgroundUrl] = useState("");
-
   const [mediaUrl, setMediaUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ======================
-     Submit
-  ====================== */
+  // ======================
+  // Submit Story
+  // ======================
   const submitStory = async () => {
     try {
       setLoading(true);
 
-      const payload: any = {
-        type,
-        privacy,
-      };
+      const payload: {
+        type: StoryType;
+        privacy: Privacy;
+        text?: string;
+        backgroundUrl?: string;
+        textStyle?: { align: string };
+        media?: MediaPayload;
+      } = { type, privacy };
 
       if (type === "text") {
         if (!text.trim()) {
-          toast.error("Text is required");
+          toast.error("Text required");
           return;
         }
         payload.text = text;
-        payload.backgroundUrl = backgroundUrl;
+        payload.backgroundUrl = backgroundUrl || "";
         payload.textStyle = { align: "center" };
       } else {
-        if (!mediaUrl) {
+        if (!mediaUrl.trim()) {
           toast.error("Media URL required");
           return;
         }
-        payload.media = {
-          url: mediaUrl,
-          provider: "wasabi",
-        };
+        payload.media = { url: mediaUrl, provider: "wasabi" };
       }
 
-      await api.post("/stories", payload);
+      const res = await api.post("/stories", payload);
 
-      toast.success("Story posted 🎉");
-      onClose();
-      reset();
-    } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Story failed");
+      if (res.data.success) {
+        dispatch(addStory(res.data.story));
+        toast.success("Story posted 🎉");
+        reset();
+        onClose();
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Story failed");
     } finally {
       setLoading(false);
     }
@@ -75,19 +88,19 @@ export default function StoryComposer({
 
   const reset = () => {
     setText("");
-    setMediaUrl("");
     setBackgroundUrl("");
+    setMediaUrl("");
     setType("text");
   };
 
+  // ======================
+  // Render
+  // ======================
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md p-0 overflow-hidden">
-
         {/* HEADER */}
-        <div className="border-b p-4 font-semibold text-center">
-          Create Story
-        </div>
+        <div className="border-b p-4 font-semibold text-center">Create Story</div>
 
         {/* TYPE SWITCH */}
         <div className="flex gap-2 p-3">
@@ -116,41 +129,22 @@ export default function StoryComposer({
 
         {/* BODY */}
         <div className="p-4 space-y-3">
-
-          {/* TEXT STORY */}
           {type === "text" && (
-            <>
-              <Textarea
-                placeholder="Write something..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                maxLength={500}
-              />
-
-              <input
-                placeholder="Background image url (optional)"
-                value={backgroundUrl}
-                onChange={(e) => setBackgroundUrl(e.target.value)}
-                className="w-full rounded border px-3 py-2 text-sm"
-              />
-            </>
+            <Textarea
+              placeholder="Write something..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              maxLength={500}
+            />
           )}
 
-          {/* IMAGE / VIDEO */}
-          {type !== "text" && (
-            <>
-              <input
-                placeholder="Media URL"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                className="w-full rounded border px-3 py-2 text-sm"
-              />
-
-              <div className="rounded border border-dashed p-4 text-center text-sm text-muted-foreground">
-                <Upload className="mx-auto mb-1" size={18} />
-                Upload integration next step
-              </div>
-            </>
+          {(type === "image" || type === "video") && (
+            <input
+              placeholder="Media URL"
+              value={mediaUrl}
+              onChange={(e) => setMediaUrl(e.target.value)}
+              className="w-full rounded border px-3 py-2 text-sm"
+            />
           )}
 
           {/* PRIVACY */}
