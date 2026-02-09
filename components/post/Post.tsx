@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Edit3, MoreHorizontal, Trash2 } from "lucide-react";
 import { useAppSelector } from "@/redux/hook/hook";
 import { useEffect, useRef, useState } from "react";
+import PostActions from "./PostActions";
 
 export type Media = {
   type: "image" | "video";
@@ -25,6 +26,13 @@ export type PostData = {
   time: string;
   content: string;
   media?: Media | null;
+
+  // counts + flags
+  likeCount: number;
+  commentCount: number;
+  shareCount: number;
+  isLiked: boolean;
+  isShared: boolean;
 };
 
 type PostProps = PostData & {
@@ -39,6 +47,11 @@ export default function Post({
   time,
   content,
   media,
+  likeCount,
+  commentCount,
+  shareCount,
+  isLiked,
+  isShared,
   onEdit,
   onDelete,
 }: PostProps) {
@@ -49,6 +62,7 @@ export default function Post({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  // click outside menu close
   useEffect(() => {
     if (!open) return;
 
@@ -57,7 +71,6 @@ export default function Post({
         setOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
@@ -71,14 +84,13 @@ export default function Post({
             {avatar?.url && (
               <SignedImage
                 keyPath={avatar.key}
-                url={avatar.url+"?v=" + Date.now()}
+                url={avatar.url + "?v=" + Date.now()}
                 provider={avatar.provider}
                 alt="avatar"
                 className="w-10 h-10 rounded-full object-cover"
               />
             )}
           </Link>
-
           <div>
             <Link
               href={`/profile/${user.userId}`}
@@ -103,7 +115,7 @@ export default function Post({
               <div className="absolute right-0 mt-1 w-40 rounded-md border bg-white shadow z-20">
                 <button
                   onClick={() => {
-                    onEdit({ _id, authorId, user, time, content, media });
+                    onEdit({ _id, authorId, user, time, content, media, likeCount, commentCount, shareCount, isLiked, isShared });
                     setOpen(false);
                   }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
@@ -131,6 +143,14 @@ export default function Post({
       {/* content */}
       {content && <p>{content}</p>}
       {media && <PostMedia media={media} />}
+
+      {/* reactions + comments + shares */}
+      <PostActions
+        postId={_id}
+        likeCount={likeCount}
+        commentCount={commentCount}
+      />
+      {/* 🔥 CommentSection handled inside PostActions */}
     </div>
   );
 }
