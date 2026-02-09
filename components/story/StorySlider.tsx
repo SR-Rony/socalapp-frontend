@@ -8,6 +8,7 @@ import StoryComposer from "./StoryComposer";
 import { useAppSelector, useAppDispatch } from "@/redux/hook/hook";
 import { setStories } from "@/redux/features/storySlice";
 import { SignedImage } from "../common/SignedImage";
+import StoryViewer from "./StoryViewer";
 
 // ======================
 // Types
@@ -16,16 +17,13 @@ type MediaType = {
   url: string;
   key?: string;
   provider?: string;
-  thumbnailUrl?: string;
 };
 
 type Story = {
   _id: string;
-  userId: string;
   type: "image" | "video" | "text";
   text?: string;
   media?: MediaType;
-  privacy: "public" | "friends" | "only_me";
   createdAt: string;
 };
 
@@ -38,7 +36,6 @@ type UserAvatar = {
 type StoryFeedItem = {
   _id: string;
   ownerId: string;
-  count: number;
   isSeen: boolean;
   isMe: boolean;
   owner: {
@@ -47,12 +44,12 @@ type StoryFeedItem = {
     avatar?: UserAvatar;
   };
   lastStory: Story;
+  stories?: Story[]; // 👈 future ready
 };
 
 type UserType = {
   _id: string;
   name: string;
-  role?: string;
   avatar?: {
     key?: string;
     url?: string;
@@ -61,17 +58,24 @@ type UserType = {
 };
 
 export default function StorySlider() {
-  const { user } = useAppSelector((state) => state.auth) as { user: UserType | null };
-  
+  const { user } = useAppSelector(
+    (state) => state.auth
+  ) as { user: UserType | null };
+
   const dispatch = useAppDispatch();
 
-  // ✅ safe selector
   const stories = useAppSelector(
     (state) => state.story?.stories ?? []
   ) as StoryFeedItem[];
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+
+  // ✅ STORY VIEWER STATE
+  const [viewer, setViewer] = useState<{
+    userIndex: number;
+    storyIndex: number;
+  } | null>(null);
 
   // ======================
   // Fetch story feed
@@ -102,7 +106,7 @@ export default function StorySlider() {
   };
 
   return (
-    <div className="relative w-full rounded-xl bg-white p-4 shadow-sm mb-4">
+    <div className="relative mb-4 w-full rounded-xl bg-white p-4 shadow-sm">
       {/* LEFT */}
       <button
         onClick={() => scroll("left")}
@@ -115,24 +119,22 @@ export default function StorySlider() {
       <div ref={scrollRef} className="flex gap-3 overflow-x-auto px-8 py-2">
         {/* CREATE STORY */}
         <div className="relative h-48 w-28 flex-shrink-0 rounded-xl bg-muted shadow">
-          {/* PROFILE IMAGE / BACKGROUND */}
-          <div className="h-32 rounded-t-xl overflow-hidden bg-gray-200">
+          <div className="h-32 overflow-hidden rounded-t-xl bg-gray-200">
             {user?.avatar?.url ? (
               <SignedImage
-                url={user.avatar.url ? `${user.avatar.url}?t=${Date.now()}` : undefined} // cache-busting
+                url={user.avatar.url}
                 keyPath={user.avatar.key}
                 provider={user.avatar.provider}
                 alt="profile"
-                className="w-full h-full object-cover"
+                className="h-full w-full object-cover"
               />
             ) : (
-              <div className="h-full w-full bg-gray-300 flex items-center justify-center text-white font-bold">
+              <div className="flex h-full w-full items-center justify-center bg-gray-300 text-white font-bold">
                 {user?.name?.[0]?.toUpperCase()}
               </div>
             )}
           </div>
 
-          {/* PLUS BUTTON */}
           <button
             onClick={() => setOpen(true)}
             className="absolute left-1/2 top-28 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full bg-primary text-white"
@@ -140,55 +142,57 @@ export default function StorySlider() {
             <Plus />
           </button>
 
-          <p className="mt-6 text-center text-sm font-medium">Create Story</p>
+          <p className="mt-6 text-center text-sm font-medium">
+            Create Story
+          </p>
         </div>
-
 
         <StoryComposer open={open} onClose={() => setOpen(false)} />
 
         {/* STORIES */}
-        {stories.map((item) => {
-          const avatar = item.owner.avatar;
-          if (!item.lastStory) return null; // 🔒 safety
+        {stories.map((item, index) => {
+          if (!item.lastStory) return null;
 
-          const lastStory = item.lastStory;
-          const media =  lastStory.type !== "text" ? lastStory.media : null;
-          
+          const media =
+            item.lastStory.type !== "text"
+              ? item.lastStory.media
+              : null;
 
           return (
             <div
               key={item._id}
-              className={`relative h-48 w-28 flex-shrink-0 overflow-hidden rounded-xl shadow ${
-                item.isSeen ? "ring-2 ring-gray-300" : "ring-2 ring-primary"
+              onClick={() =>
+                setViewer({ userIndex: index, storyIndex: 0 })
+              }
+              className={`relative h-48 w-28 cursor-pointer flex-shrink-0 overflow-hidden rounded-xl shadow ${
+                item.isSeen
+                  ? "ring-2 ring-gray-300"
+                  : "ring-2 ring-primary"
               }`}
             >
               {media ? (
-                <div className="relative h-full w-full">
-                  <SignedImage
-                    keyPath={media.key}
-                    url={media.url}
-                    provider={media.provider}
-                    alt="story"
-                    className="object-cover w-full h-full"
-                  />
-                </div>
+                <SignedImage
+                  keyPath={media.key}
+                  url={media.url}
+                  provider={media.provider}
+                  alt="story"
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="flex h-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 p-2 text-xs font-semibold text-white">
-                  {lastStory.text}
+                  {item.lastStory.text}
                 </div>
               )}
 
               <div className="absolute inset-0 bg-black/20" />
 
-              {/* AVATAR */}
-              <Avatar className="absolute left-2 top-2 h-8 w-8 border-2 border-primary overflow-hidden">
-                {avatar && (
+              <Avatar className="absolute left-2 top-2 h-8 w-8 border-2 border-primary">
+                {item.owner.avatar && (
                   <SignedImage
-                    keyPath={avatar.key}
-                    url={avatar.url}
-                    provider={avatar.provider}
+                    keyPath={item.owner.avatar.key}
+                    url={item.owner.avatar.url}
+                    provider={item.owner.avatar.provider}
                     alt="avatar"
-                    className="object-cover"
                   />
                 )}
               </Avatar>
@@ -200,6 +204,19 @@ export default function StorySlider() {
           );
         })}
       </div>
+
+      {/* STORY VIEWER */}
+      {viewer && (
+        <StoryViewer
+          stories={stories}
+          userIndex={viewer.userIndex}
+          storyIndex={viewer.storyIndex}
+          onClose={() => setViewer(null)}
+          onChange={(u, s) =>
+            setViewer({ userIndex: u, storyIndex: s })
+          }
+        />
+      )}
 
       {/* RIGHT */}
       <button
