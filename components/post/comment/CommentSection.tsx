@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import api from "@/lib/api";
 import CommentInput from "./CommentInput";
 import CommentItem from "./CommentItem";
+import { useAppSelector } from "@/redux/hook/hook";
 
 export type Comment = {
   _id: string;
   text: string;
+  postId: string;
   author: {
     _id: string;
     name: string;
@@ -22,53 +24,174 @@ type Props = {
   postId: string;
 };
 
+type UserType = {
+  _id: string;
+  name: string;
+  role?: string;
+  avatar?: {
+    key?: string;
+    url?: string;
+    provider?: string;
+  };
+};
+
 export default function CommentSection({ postId }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
-  const [cursor, setCursor] = useState<any>(null);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  // 🔹 load comments
-  const fetchComments = async () => {
-    setLoading(true);
-    const res = await api.get(`/comment/${postId}/comments`, {
-      params: { cursor },
-    });
-    
+  // 🔹 Refs for stable loading & hasMore state
+  const loadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const cursorRef = useRef<string | null>(null);
 
-    if (res.data.ok) {
-      setComments((p) => [...p, ...res.data.items]);
-      setCursor(res.data.nextCursor);
-    }
-    setLoading(false);
-  };
+  const { user } = useAppSelector((state) => state.auth) as { user: UserType | null };
+
+  console.log("user",user);
+  
+
+  // Update refs when state changes
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   useEffect(() => {
-    fetchComments();
-  }, []);
+    hasMoreRef.current = hasMore;
+  }, [hasMore]);
+
+  useEffect(() => {
+    cursorRef.current = cursor;
+  }, [cursor]);
+
+  // 🔹 Fetch comments safely
+  const fetchComments = useCallback(async () => {
+    if (loadingRef.current || !hasMoreRef.current) return;
+
+    try {
+      loadingRef.current = true;
+      setLoading(true);
+
+      const res = await api.get(`/comment/${postId}/comments`, {
+        params: { cursor: cursorRef.current },
+      });
+
+      if (res.data.ok) {
+        const items: Comment[] = res.data.items || [];
+
+        // ✅ Prevent duplicate IDs
+        setComments((prev) => {
+          const newItems = items.filter(
+            (item) => !prev.some((p) => p._id === item._id)
+          );
+          return [...prev, ...newItems];
+        });
+
+        const next = res.data.nextCursor || null;
+        setCursor(next);
+        cursorRef.current = next;
+        hasMoreRef.current = Boolean(next);
+        setHasMore(Boolean(next));
+      }
+    } catch (err) {
+      console.error("Failed to load comments", err);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  }, [postId]);
+
+  // 🔹 Reset when post changes
+  useEffect(() => {
+    setComments([]);
+    setCursor(null);
+    setHasMore(true);
+    cursorRef.current = null;
+    hasMoreRef.current = true;
+
+    fetchComments(); // Load first page
+  }, [postId, fetchComments]);
+
+  // 🔹 Safe add comment (no duplicate)
+  const handleAddComment = (newComment: Comment) => {
+    setComments((prev) =>
+      prev.some((c) => c._id === newComment._id)
+        ? prev
+        : [newComment, ...prev]
+    );
+  };
+
+  const handleEditComment = (comment: Comment) => {
+    console.log("Edit comment", comment);
+    // open modal or inline edit logic
+  };
+
+  const handleDeleteComment = async (comment: Comment) => {
+    try {
+      // 🔹 API call
+      const res = await api.delete(`/comment/${comment._id}`);
+      if (!res.data.ok) {
+        console.error("Delete failed:", res.data.message);
+        return;
+      }
+
+      // 🔹 Update frontend state (soft delete)
+      setComments((prev) =>
+        prev.map((c) =>
+          c._id === comment._id
+            ? {
+                ...c,
+                text: "[deleted]",
+                isDeleted: true, // new flag
+              }
+            : c
+        )
+      );
+    } catch (err) {
+      console.error("Delete comment error:", err);
+    }
+  };
+
+  const handleReportComment = (comment: Comment) => {
+    console.log("Report comment", comment);
+    // send report to backend
+  };
 
   return (
-    <div className="mt-2 space-y-3">
-      {/* input */}
-      <CommentInput
-        postId={postId}
-        onAdd={(c) => setComments((p) => [c, ...p])}
-      />
+    <div className="flex h-full flex-col">
 
-      {/* list */}
-      {comments.map((c) => (
-        <CommentItem key={c._id} comment={c} />
-      ))}
+      {/* 🔹 Comment List */}
+      <div className="flex-1 space-y-4 overflow-y-auto pb-4">
+        {comments.map((c) => (
+          <CommentItem
+            key={c._id}
+            comment={c}
+            currentUserId={user?._id || ""}   // এখন guaranteed non-null
+            onEdit={handleEditComment}
+            onDelete={handleDeleteComment}
+            onReport={handleReportComment}
+          />
+        ))}
 
-      {/* load more */}
-      {cursor && (
-        <button
-          disabled={loading}
-          onClick={fetchComments}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          Load more comments
-        </button>
-      )}
+        {/* 🔹 Load More Button */}
+        {hasMore && (
+          <button
+            disabled={loading}
+            onClick={fetchComments}
+            className="text-sm text-blue-600 hover:underline disabled:opacity-50 flex items-center gap-2"
+          >
+            Load more comments
+            {loading && (
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+            )}
+          </button>
+        )}
+      </div>
+
+      {/* 🔹 Bottom Fixed Input */}
+      <div className="border-t pt-3">
+        <CommentInput postId={postId} onAdd={handleAddComment} />
+      </div>
     </div>
   );
 }

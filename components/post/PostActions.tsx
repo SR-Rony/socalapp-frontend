@@ -3,6 +3,7 @@
 import { MessageCircle, ThumbsUp, Share2 } from "lucide-react";
 import { useState } from "react";
 import CommentSection from "./comment/CommentSection";
+import CommentModal from "./comment/CommentModal";
 
 type PostActionsProps = {
   postId: string;
@@ -63,6 +64,11 @@ export default function PostActions({
           <CommentSection postId={postId} />
         </div>
       )}
+      <CommentModal
+        open={showComments}
+        onClose={() => setShowComments(false)}
+        postId={postId}
+      />
     </div>
   );
 }

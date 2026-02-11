@@ -15,6 +15,7 @@ export type Media = {
   provider?: string;
 };
 
+// 🔹 Only declare PostData here
 export type PostData = {
   _id: string;
   authorId: string;
@@ -62,10 +63,8 @@ export default function Post({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // click outside menu close
   useEffect(() => {
     if (!open) return;
-
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
@@ -115,7 +114,19 @@ export default function Post({
               <div className="absolute right-0 mt-1 w-40 rounded-md border bg-white shadow z-20">
                 <button
                   onClick={() => {
-                    onEdit({ _id, authorId, user, time, content, media, likeCount, commentCount, shareCount, isLiked, isShared });
+                    onEdit({
+                      _id,
+                      authorId,
+                      user,
+                      time,
+                      content,
+                      media,
+                      likeCount,
+                      commentCount,
+                      shareCount,
+                      isLiked,
+                      isShared,
+                    });
                     setOpen(false);
                   }}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
@@ -144,13 +155,11 @@ export default function Post({
       {content && <p>{content}</p>}
       {media && <PostMedia media={media} />}
 
-      {/* reactions + comments + shares */}
       <PostActions
         postId={_id}
         likeCount={likeCount}
         commentCount={commentCount}
       />
-      {/* 🔥 CommentSection handled inside PostActions */}
     </div>
   );
 }
