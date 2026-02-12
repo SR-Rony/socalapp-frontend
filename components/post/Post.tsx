@@ -36,29 +36,28 @@ export type PostData = {
   isShared: boolean;
 };
 
-type PostProps = PostData & {
-  onEdit: (post: PostData) => void;
-  onDelete: (id: string) => void;
+type PostProps = {
+  post: PostData;
+  onEdit?: (post: PostData) => void;
+  onDelete?: (id: string) => void;
 };
 
+
 export default function Post({
-  _id,
-  authorId,
-  user,
-  time,
-  content,
-  media,
-  likeCount,
-  commentCount,
-  shareCount,
-  isLiked,
-  isShared,
+  post,
   onEdit,
   onDelete,
 }: PostProps) {
   const { user: me } = useAppSelector((state) => state.auth);
-  const avatar = user.userId === me?._id ? me.avatar : user.avatar;
-  const isMe = me?._id === user.userId;
+  const avatar =
+  post.user.userId === me?._id
+    ? me?.avatar
+    : post.user.avatar;
+
+
+  const isMe = me?._id === post.user.userId;
+  
+  
 
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -79,7 +78,7 @@ export default function Post({
       {/* header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <Link href={`/profile/${user.userId}`} className="w-10 h-10">
+          <Link href={`/profile/${post.user.userId}`} className="w-10 h-10">
             {avatar?.url && (
               <SignedImage
                 keyPath={avatar.key}
@@ -92,12 +91,12 @@ export default function Post({
           </Link>
           <div>
             <Link
-              href={`/profile/${user.userId}`}
+              href={`/profile/${post.user.userId}`}
               className="font-medium hover:underline"
             >
-              {user.name}
+              {post.user.name}
             </Link>
-            <p className="text-xs text-muted-foreground">{time}</p>
+            <p className="text-xs text-muted-foreground">{post.time}</p>
           </div>
         </div>
 
@@ -113,22 +112,7 @@ export default function Post({
             {open && (
               <div className="absolute right-0 mt-1 w-40 rounded-md border bg-white shadow z-20">
                 <button
-                  onClick={() => {
-                    onEdit({
-                      _id,
-                      authorId,
-                      user,
-                      time,
-                      content,
-                      media,
-                      likeCount,
-                      commentCount,
-                      shareCount,
-                      isLiked,
-                      isShared,
-                    });
-                    setOpen(false);
-                  }}
+                  onClick={() => onEdit?.(post)}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
                 >
                   <Edit3 size={16} />
@@ -137,9 +121,7 @@ export default function Post({
 
                 <button
                   onClick={() => {
-                    onDelete(_id);
-                    setOpen(false);
-                  }}
+                    onDelete?.(post._id)}}
                   className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-muted"
                 >
                   <Trash2 size={16} />
@@ -152,13 +134,13 @@ export default function Post({
       </div>
 
       {/* content */}
-      {content && <p>{content}</p>}
-      {media && <PostMedia media={media} />}
+      {post.content && <p>{post.content}</p>}
+      {post.media && <PostMedia media={post.media} />}
 
       <PostActions
-        postId={_id}
-        likeCount={likeCount}
-        commentCount={commentCount}
+        post={post}
+        likeCount={post.likeCount}
+        commentCount={post.commentCount}
       />
     </div>
   );

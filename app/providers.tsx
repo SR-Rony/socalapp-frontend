@@ -27,13 +27,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <Navbar />
           {!hideLayout ? (
             <div className="grid grid-cols-12 container mx-auto gap-4">
-              <div className="hidden md:col-span-3 md:block">
+              <div className="hidden lg:col-span-3 lg:block">
                 <aside className="sticky top-4 bg-white p-4 rounded-xl shadow mt-3 h-fit">
                   <Sidebar />
                 </aside>
               </div>
-              <div className="col-span-12 md:col-span-6">{children}</div>
-              <div className="hidden md:col-span-3 md:flex justify-end mt-3">
+              <div className="col-span-12 lg:col-span-6">{children}</div>
+              <div className="hidden lg:col-span-3 lg:flex justify-end mt-3">
                 <RightSidebar />
               </div>
             </div>

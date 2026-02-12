@@ -93,7 +93,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2 flex-1">
 
             {/* 🔥 Mobile Sidebar Trigger */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button size="icon" variant="ghost">
@@ -137,7 +137,7 @@ export default function Navbar() {
           {/* =============================
               RIGHT: Actions + Profile
           ============================= */}
-          <div className="flex flex-1 justify-end items-center gap-2">
+          <div className="flex flex-1 justify-end items-center md:gap-2">
             <Button size="icon" variant="ghost">
               <CirclePlus className="h-7 w-7" />
             </Button>

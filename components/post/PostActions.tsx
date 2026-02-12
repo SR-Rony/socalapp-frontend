@@ -1,29 +1,38 @@
 "use client";
 
 import { MessageCircle, ThumbsUp, Share2 } from "lucide-react";
-import { useState } from "react";
-import CommentSection from "./comment/CommentSection";
+import { useEffect, useState } from "react";
 import CommentModal from "./comment/CommentModal";
+import { PostData } from "./types/post.ts";
 
 type PostActionsProps = {
-  postId: string;
+  post: PostData;
   commentCount?: number;
   likeCount?: number;
 };
 
 export default function PostActions({
-  postId,
+  post,
   commentCount = 0,
   likeCount = 0,
 }: PostActionsProps) {
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(likeCount);
+  // 🔥 initialize from backend data
+  const [liked, setLiked] = useState(post.isLiked);
+  const [likes, setLikes] = useState(post.likeCount);
   const [showComments, setShowComments] = useState(false);
 
+  // 🔁 if post changes sync state
+  useEffect(() => {
+    setLiked(post.isLiked);
+    setLikes(post.likeCount);
+  }, [post]);
+
   const handleLike = () => {
-    // 🔥 later: backend call
-    setLiked((p) => !p);
-    setLikes((p) => (liked ? p - 1 : p + 1));
+    setLiked((prev) => !prev);
+
+    setLikes((prev) => (liked ? prev - 1 : prev + 1));
+
+    // 🔥 later: backend API call
   };
 
   return (
@@ -44,30 +53,23 @@ export default function PostActions({
         />
 
         <ActionButton
-          onClick={() => setShowComments((p) => !p)}
+          onClick={() => setShowComments(true)}
           icon={<MessageCircle size={18} />}
           label="Comment"
         />
 
         <ActionButton
-          onClick={() => {
-            alert("Share coming soon");
-          }}
+          onClick={() => alert("Share coming soon")}
           icon={<Share2 size={18} />}
           label="Share"
         />
       </div>
 
-      {/* 🔥 Comment Section */}
-      {showComments && (
-        <div className="mt-3">
-          <CommentSection postId={postId} />
-        </div>
-      )}
+      {/* 🔥 Facebook Style Modal */}
       <CommentModal
         open={showComments}
         onClose={() => setShowComments(false)}
-        postId={postId}
+        post={post}
       />
     </div>
   );

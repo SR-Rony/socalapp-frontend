@@ -98,6 +98,8 @@ export default function PostList() {
     fetchFeed();
   }, []);
 
+  
+
   if (loading) {
     return <p className="text-center text-muted-foreground">Loading feed...</p>;
   }
@@ -109,12 +111,12 @@ export default function PostList() {
   return (
     <div className="flex flex-col gap-4">
       {posts.map((post) => (
-        <Post
-          key={post._id}
-          {...post}
-          onEdit={(p) => console.log("Edit post:", p)}
-          onDelete={(id) => console.log("Delete post:", id)}
-        />
+         <Post
+            key={post._id}
+            post={post}   // 👉 পুরো object একসাথে পাঠানো
+            onEdit={(p) => console.log("Edit post:", p)}
+            onDelete={(id) => console.log("Delete post:", id)}
+          />
       ))}
     </div>
   );

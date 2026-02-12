@@ -158,40 +158,37 @@ export default function CommentSection({ postId }: Props) {
   };
 
   return (
-    <div className="flex h-full flex-col">
+  <div className="flex h-full flex-col">
 
-      {/* 🔹 Comment List */}
-      <div className="flex-1 space-y-4 overflow-y-auto pb-4">
+      {/* 🔥 Scrollable Comment List */}
+      <div className="flex-1 space-y-4 overflow-y-auto py-4">
         {comments.map((c) => (
           <CommentItem
             key={c._id}
             comment={c}
-            currentUserId={user?._id || ""}   // এখন guaranteed non-null
+            currentUserId={user?._id || ""}
             onEdit={handleEditComment}
             onDelete={handleDeleteComment}
             onReport={handleReportComment}
           />
         ))}
 
-        {/* 🔹 Load More Button */}
-        {hasMore && (
-          <button
-            disabled={loading}
-            onClick={fetchComments}
-            className="text-sm text-blue-600 hover:underline disabled:opacity-50 flex items-center gap-2"
-          >
-            Load more comments
-            {loading && (
-              <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
-            )}
-          </button>
-        )}
+        {hasMore && ( 
+          <button 
+          disabled={loading} 
+          onClick={fetchComments} 
+          className="text-sm text-blue-600 hover:underline disabled:opacity-50 flex items-center gap-2 cursor-pointer" > 
+          Load more comments 
+          {loading && ( 
+            <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /> )} 
+          </button> )}
       </div>
 
-      {/* 🔹 Bottom Fixed Input */}
-      <div className="border-t pt-3">
+      {/* 🔥 Fixed Bottom Input */}
+      <div className="border-t bg-white p-3">
         <CommentInput postId={postId} onAdd={handleAddComment} />
       </div>
     </div>
   );
-}
+
+  }

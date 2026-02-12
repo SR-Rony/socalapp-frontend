@@ -12,7 +12,6 @@ import { ImageIcon, VideoIcon, Smile, X } from "lucide-react";
 import { useAppSelector } from "@/redux/hook/hook";
 import api from "@/lib/api";
 import Link from "next/link";
-import { Sign } from "crypto";
 import { SignedImage } from "../common/SignedImage";
 
 /* ========================

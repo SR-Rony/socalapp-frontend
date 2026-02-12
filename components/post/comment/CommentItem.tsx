@@ -26,8 +26,6 @@ export default function CommentItem({
   const [showReplies, setShowReplies] = useState(false);
   const hasReplies = comment.replyCount > 0;
   const isOwner = comment.author._id === currentUserId;
-
-  console.log("comment",comment);
   
 
   return (

@@ -47,6 +47,7 @@ export default function ProfilePosts({ userId }: { userId: string }) {
 
               time: formatTime(post.createdAt),
               content: post.text,
+
               media: mediaItem
                 ? {
                     type: mediaItem.type,
@@ -55,6 +56,13 @@ export default function ProfilePosts({ userId }: { userId: string }) {
                     provider: mediaItem.provider,
                   }
                 : null,
+
+              // ✅ ADD THESE
+              likeCount: post.likeCount ?? 0,
+              commentCount: post.commentCount ?? 0,
+              shareCount: post.shareCount ?? 0,
+              isLiked: post.isLiked ?? false,
+              isShared: post.isShared ?? false,
             };
           });
 
@@ -120,7 +128,7 @@ export default function ProfilePosts({ userId }: { userId: string }) {
         {posts.map((post) => (
           <Post
             key={post._id}
-            {...post}
+            post={post}
             onEdit={handleEditOpen}
             onDelete={handleDelete}
           />
