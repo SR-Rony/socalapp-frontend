@@ -35,6 +35,13 @@ export default function PostActions({
     // 🔥 later: backend API call
   };
 
+  const openComments = () => {
+  setShowComments((prev) => {
+    if (prev) return prev; // already open থাকলে কিছুই করবে না
+    return true;
+  });
+};
+
   return (
     <div className="pt-2">
       {/* counts */}
@@ -53,7 +60,7 @@ export default function PostActions({
         />
 
         <ActionButton
-          onClick={() => setShowComments(true)}
+          onClick={openComments}
           icon={<MessageCircle size={18} />}
           label="Comment"
         />

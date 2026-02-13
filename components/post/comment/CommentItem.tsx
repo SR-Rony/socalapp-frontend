@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SignedImage } from "@/components/common/SignedImage";
 
 export default function CommentItem({
   comment,
@@ -26,12 +27,27 @@ export default function CommentItem({
   const [showReplies, setShowReplies] = useState(false);
   const hasReplies = comment.replyCount > 0;
   const isOwner = comment.author._id === currentUserId;
+
+  console.log('comment',comment);
+  const avatar = comment.author.avatar
+  
   
 
   return (
     <div className="flex gap-3 relative group">
       {/* Avatar */}
-      <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gray-300" />
+      {avatar 
+        ?
+        <SignedImage
+          keyPath={avatar.key}
+          url={avatar.url}
+          provider={avatar.provider}
+          alt={comment.author.name}
+          className="w-7 h-7 rounded-full object-cover"
+        />
+        :
+        <div className="h-9 w-9 flex-shrink-0 rounded-full bg-gray-300" />
+      }
 
       <div className="flex-1 space-y-1">
         {/* Bubble */}
