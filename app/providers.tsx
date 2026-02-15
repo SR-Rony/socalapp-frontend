@@ -18,7 +18,8 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/profile");
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/feed");
 
   return (
     <ReduxProvider store={store}>

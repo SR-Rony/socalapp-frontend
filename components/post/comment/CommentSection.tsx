@@ -47,8 +47,6 @@ export default function CommentSection({ postId }: Props) {
   const cursorRef = useRef<string | null>(null);
 
   const { user } = useAppSelector((state) => state.auth) as { user: UserType | null };
-
-  console.log("user",user);
   
 
   // Update refs when state changes
