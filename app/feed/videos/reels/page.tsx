@@ -1,5 +1,6 @@
-import ReelsFeed from "@/components/video/reel/VideoFeed";
+import VideoFeed from "@/components/video/VideoFeed";
+
 
 export default function ReelsPage() {
-  return  <ReelsFeed />
+  return  <VideoFeed type="reels" />
 }

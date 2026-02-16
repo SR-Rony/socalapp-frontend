@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Send } from "lucide-react";
+import { X} from "lucide-react";
 import { SignedImage } from "@/components/common/SignedImage";
 import CommentSection from "@/components/post/comment/CommentSection";
 

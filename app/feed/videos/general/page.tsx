@@ -1,7 +1,8 @@
-import VideoFeed from "@/components/video/reel/VideoFeed";
+import VideoFeed from "@/components/video/VideoFeed";
+
 
 export default function GeneralVideosPage() {
   return (
-    <VideoFeed endpoint="/feed/videos/general" />
+    <VideoFeed type="general" />
   );
 }
