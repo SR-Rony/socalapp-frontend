@@ -18,6 +18,7 @@ import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { SignedImage } from "@/components/common/SignedImage";
 
 /* =======================
    Types
@@ -37,6 +38,8 @@ type Story = {
   };
   media?: {
     url: string;
+    key: string;
+    provider: string;
     thumbnailUrl?: string;
   };
 };
@@ -188,14 +191,14 @@ export default function AdminStoriesPage() {
 
                   {/* Preview */}
                   <td className="border px-3 py-2">
-                    {story.type === "image" && story.media?.url && (
-                      <Image
-                        src={story.media.url}
-                        alt="story"
-                        width={80}
-                        height={80}
-                        className="rounded"
-                      />
+                    {story.type === "image" && story.media && (
+                      <SignedImage
+                      url={story.media.url} // cache-busting
+                      keyPath={story.media.key}
+                      provider={story.media.provider}
+                      alt="story"
+                      className="w-10 h-9 object-cover"
+                    />
                     )}
 
                     {story.type === "video" && (

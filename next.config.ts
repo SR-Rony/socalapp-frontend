@@ -13,15 +13,19 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "s3.us-central-1.wasabisys.com", // 🔹 এখানে add করতে হবে
+        hostname: "s3.us-central-1.wasabisys.com",
       },
       {
         protocol: "https",
-        hostname: "ui-avatars.com", // fallback avatar
+        hostname: "ui-avatars.com",
       },
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.vectorstock.com", // ✅ এখানে add
       },
     ],
   },
