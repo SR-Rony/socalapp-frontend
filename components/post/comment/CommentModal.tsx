@@ -10,7 +10,7 @@ import {
 import CommentSection from "./CommentSection";
 import { SignedImage } from "@/components/common/SignedImage";
 import PostMedia from "../PostMedia";
-import { PostData } from "../types/post.ts";
+import { PostData } from "../types/post";
 
 type Props = {
   open: boolean;

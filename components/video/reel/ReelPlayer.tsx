@@ -29,7 +29,6 @@ export default function ReelPlayer({ media, active }: Props) {
 
   return (
     <SignedVideo
-      ref={videoRef}
       url={media.url}
       keyPath={media.key}
       provider={media.provider}

@@ -4,8 +4,9 @@ import { MessageCircle, ThumbsUp, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import CommentModal from "./comment/CommentModal";
 import api from "@/lib/api";
-import { PostData } from "./types/post.ts";
+// import { PostData } from "./types/post.ts";
 import ShareModal from "./share/ShareModal";
+import { PostData } from "./types/post";
 
 type PostActionsProps = {
   post: PostData;
