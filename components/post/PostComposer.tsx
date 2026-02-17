@@ -25,7 +25,10 @@ interface Media {
   url: string;
   type: "image" | "video";
   provider?: string;
-  publicId?: string;
+
+  key?: string;          // ✅ Wasabi object key
+
+  publicId?: string;     // (legacy cloudinary থাকলে রাখতে পারো)
   thumbnailUrl?: string;
   width?: number;
   height?: number;
