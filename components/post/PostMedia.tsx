@@ -13,7 +13,7 @@ export default function PostMedia({ media }: { media: Media }) {
   if (!media) return null;
 
   if (media.type === "image") {
-    return <SignedImage url={media.url} keyPath={media.key} provider={media.provider} />;
+    return <SignedImage url={media.url} keyPath={media.key} provider={media.provider} className="w-full h-full" />;
   }
 
   if (media.type === "video") {

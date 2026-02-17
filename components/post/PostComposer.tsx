@@ -13,6 +13,7 @@ import { useAppSelector } from "@/redux/hook/hook";
 import api from "@/lib/api";
 import Link from "next/link";
 import { SignedImage } from "../common/SignedImage";
+import { SignedVideo } from "../common/SignedVideo";
 
 /* ========================
    Types
@@ -103,62 +104,88 @@ export default function PostComposer({
   /* ========================
      Image Upload (Cloudinary example)
   ======================== */
-  const handleImageUpload = async (files: FileList | null) => {
-    if (!files) return;
-    setType("image");
+ const handleImageUpload = async (files: FileList | null) => {
+  if (!files) return;
 
-    const uploaded: Media[] = [];
+  setType("image");
 
-    for (const file of Array.from(files)) {
-      const form = new FormData();
-      form.append("file", file);
-      form.append("upload_preset", "YOUR_PRESET");
+  const uploaded: Media[] = [];
 
-      const res = await fetch(
-        "https://api.cloudinary.com/v1_1/YOUR_CLOUD/image/upload",
-        { method: "POST", body: form }
-      );
-      const data = await res.json();
+  for (const file of Array.from(files)) {
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const res = await api.post("/upload/image", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const data = res.data;
+
+      if (!data.ok) {
+        console.error("Upload failed:", data.message);
+        continue;
+      }
 
       uploaded.push({
-        url: data.secure_url,
+        url: data.url,
         type: "image",
-        provider: "cloudinary",
-        publicId: data.public_id,
+        provider: data.provider,
+        key: data.key,
         width: data.width,
         height: data.height,
       });
+    } catch (err: any) {
+      console.error("Upload error:", err?.response?.data || err.message);
     }
+  }
 
-    setImages((prev) => [...prev, ...uploaded]);
-  };
+  setImages((prev) => [...prev, ...uploaded]);
+};
+
 
   /* ========================
      Video Upload
   ======================== */
-  const handleVideoUpload = async (file: File | null) => {
-    if (!file) return;
-    setType("video");
+ const handleVideoUpload = async (file: File | null) => {
+  if (!file) return;
 
-    const form = new FormData();
-    form.append("file", file);
-    form.append("upload_preset", "YOUR_PRESET");
+  setType("video");
 
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/YOUR_CLOUD/video/upload",
-      { method: "POST", body: form }
-    );
-    const data = await res.json();
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
+    const res = await api.post("/upload/video", form, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    const data = res.data;
+
+    console.log("video data", data);
+
+    if (!data.ok) {
+      console.error("Upload failed:", data.message);
+      return;
+    }
 
     setVideo({
-      url: data.secure_url,
+      url: data.url,              // ✅ Wasabi video URL
       type: "video",
-      provider: "cloudinary",
-      publicId: data.public_id,
-      thumbnailUrl: data.secure_url.replace(".mp4", ".jpg"),
-      durationSec: data.duration,
+      provider: data.provider,   // "wasabi"
+      key: data.key,
+      thumbnailUrl: data.thumbnailUrl || "", // যদি backend দেয়
+      durationSec: data.durationSec || 0,
     });
-  };
+  } catch (err: any) {
+    console.error("Video upload error:", err?.response?.data || err.message);
+  }
+};
+
 
   /* ========================
      Submit
@@ -201,6 +228,9 @@ export default function PostComposer({
       setLoading(false);
     }
   };
+
+  console.log("videos fgsdgfa",video);
+  
 
   /* ========================
      UI
@@ -288,11 +318,11 @@ export default function PostComposer({
             <div className="px-4 mt-3 grid grid-cols-2 gap-2">
               {images.map((img, i) => (
                 <div key={i} className="relative">
-                  <Image
-                    src={img.url}
-                    alt="preview"
-                    width={300}
-                    height={200}
+                  <SignedImage
+                    keyPath={img?.key}
+                    url={img?.url} 
+                    provider={img?.provider}
+                    alt="ipreview"
                     className="rounded-lg object-cover"
                   />
                   <X
@@ -311,7 +341,11 @@ export default function PostComposer({
           {/* Video Preview */}
           {video && (
             <div className="px-4 mt-3 relative">
-              <video src={video.url} controls className="w-full rounded-lg" />
+              <SignedVideo
+                url={video.url}
+                keyPath={video.key}
+                provider={video.provider}
+              />;
               <X
                 className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 cursor-pointer"
                 onClick={() => setVideo(null)}
