@@ -5,10 +5,14 @@ export type VideoItem = {
   commentCount: number;
   shareCount: number;
   isLiked: boolean;
+  viewCount?: number;
   medias: {
     url?: string;
     key?: string;
     provider?: string;
+    thumbnailUrl?: string;
+  // 🎬 add this
+  durationSec?: number;
   }[];
   author: {
     _id: string;

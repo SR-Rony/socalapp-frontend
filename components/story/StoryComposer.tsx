@@ -67,6 +67,8 @@ export default function StoryComposer({ open, onClose }: StoryComposerProps) {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      
+
       if (res.data?.ok && res.data?.url) {
         // ✅ return both key & url
         return {

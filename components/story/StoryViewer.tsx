@@ -1,11 +1,37 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { SignedImage } from "@/components/common/SignedImage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { SignedVideo } from "../common/SignedVideo";
+
+type StoryMedia = {
+  url: string;
+  key?: string;
+  provider?: string;
+};
+
+type StoryItem = {
+  _id: string;
+  type: "image" | "video" | "text";
+  text?: string;
+  media?: StoryMedia;
+  createdAt: string;
+};
+
+type StoryUser = {
+  owner: {
+    name: string;
+    avatar?: StoryMedia;
+  };
+  stories?: StoryItem[];
+  lastStory?: StoryItem;
+  isMe?: boolean;
+};
 
 type Props = {
-  stories: any[];
+  stories: StoryUser[];
   userIndex: number;
   storyIndex: number;
   onClose: () => void;
@@ -20,47 +46,122 @@ export default function StoryViewer({
   onChange,
 }: Props) {
   const user = stories[userIndex];
-  const userStories = user.stories || [user.lastStory];
-  const current = userStories[storyIndex];
-
-
-  console.log("story",stories);
-  console.log("userIndex",userIndex);
-  console.log("storyIndex",storyIndex);
-  console.log("onClose",onClose);
-  console.log("onChange",onChange);
+  
   
 
+  const userStories =
+    user.stories && user.stories.length > 0
+      ? user.stories
+      : user.lastStory
+      ? [user.lastStory]
+      : [];
+  
 
+  const current = userStories[storyIndex];
 
+  const [progress, setProgress] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🚫 crash protection
+  if (!current) return null;
+
+  const duration =
+    current.type === "video"
+      ? (videoDuration || 10) * 1000
+      : 7000;
 
   // 👉 NEXT
   const next = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setProgress(0);
+
     if (storyIndex < userStories.length - 1) {
       onChange(userIndex, storyIndex + 1);
     } else if (userIndex < stories.length - 1) {
       onChange(userIndex + 1, 0);
+    } else {
+      onClose();
     }
   };
 
   // 👉 PREV
   const prev = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setProgress(0);
+
     if (storyIndex > 0) {
       onChange(userIndex, storyIndex - 1);
     } else if (userIndex > 0) {
+      const prevUser = stories[userIndex - 1];
+
       const prevUserStories =
-        stories[userIndex - 1].stories ||
-        [stories[userIndex - 1].lastStory];
+        prevUser.stories && prevUser.stories.length > 0
+          ? prevUser.stories
+          : prevUser.lastStory
+          ? [prevUser.lastStory]
+          : [];
 
       onChange(userIndex - 1, prevUserStories.length - 1);
     }
+  };
+
+  // 🔁 reset video duration on story change
+  useEffect(() => {
+    setVideoDuration(null);
+  }, [userIndex, storyIndex]);
+
+  // 👉 AUTO PROGRESS
+  useEffect(() => {
+    if (isPaused) return;
+    if (current.type === "video" && !videoDuration) return;
+
+    setProgress(0);
+
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    const interval = 50;
+    const step = 100 / (duration / interval);
+
+    timerRef.current = setInterval(() => {
+      setProgress((prev) => {
+        if (prev + step >= 100) {
+          clearInterval(timerRef.current!);
+          next();
+          return 100;
+        }
+        return prev + step;
+      });
+    }, interval);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [userIndex, storyIndex, duration, isPaused, videoDuration]);
+
+  // 👉 pause handlers
+  const handleHoldStart = () => {
+    setIsPaused(true);
+    if (timerRef.current) clearInterval(timerRef.current);
+  };
+
+  const handleHoldEnd = () => {
+    setIsPaused(false);
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative z-10 h-[90vh] w-full max-w-md">
+      <div
+        className="relative z-10 h-[90vh] w-full max-w-md"
+        onMouseDown={handleHoldStart}
+        onMouseUp={handleHoldEnd}
+        onTouchStart={handleHoldStart}
+        onTouchEnd={handleHoldEnd}
+      >
         {/* LEFT */}
         {(userIndex > 0 || storyIndex > 0) && (
           <button
@@ -84,6 +185,28 @@ export default function StoryViewer({
 
         {/* STORY CARD */}
         <div className="relative h-full w-full overflow-hidden rounded-xl bg-black">
+          {/* 🔥 PROGRESS BARS */}
+          <div className="absolute left-2 right-2 top-2 z-20 flex gap-1">
+            {userStories.map((_, i) => (
+              <div
+                key={i}
+                className="h-1 flex-1 overflow-hidden rounded bg-white/30"
+              >
+                <div
+                  className="h-full bg-white transition-all"
+                  style={{
+                    width:
+                      i < storyIndex
+                        ? "100%"
+                        : i === storyIndex
+                        ? `${progress}%`
+                        : "0%",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
           {/* HEADER */}
           <div className="absolute left-4 right-4 top-4 z-20 flex items-center gap-3 text-white">
             <Avatar className="h-10 w-10 border border-white">
@@ -93,6 +216,7 @@ export default function StoryViewer({
                   url={user.owner.avatar.url}
                   provider={user.owner.avatar.provider}
                   alt="avatar"
+                  className="w-full h-full rounded-full object-cover"
                 />
               )}
             </Avatar>
@@ -109,27 +233,30 @@ export default function StoryViewer({
 
           {/* CONTENT */}
           {current.type === "video" ? (
-            <video
-              src={current.media.url}
+            <SignedVideo
+              url={current.media!.url}
+              keyPath={current.media!.key}
+              provider={current.media!.provider}
+              onLoadedMetadata={(e: any) =>
+                setVideoDuration(e.target.duration)
+              }
               autoPlay
-              muted
-              playsInline
-              className="h-full w-full object-cover"
             />
           ) : current.type === "image" ? (
             <SignedImage
-              keyPath={current.media.key}
-              url={current.media.url}
-              provider={current.media.provider}
+              keyPath={current.media!.key}
+              url={current.media!.url}
+              provider={current.media!.provider}
               alt="story"
               className="h-full w-full object-cover"
             />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 p-6 text-center text-lg font-semibold text-white">
-              {current.text}
+              <p className="text-center">{current.text}</p>
             </div>
           )}
 
+          {/* CLOSE */}
           <button
             onClick={onClose}
             className="absolute right-4 top-4 z-30 rounded-full bg-black/60 px-3 py-1 text-white"

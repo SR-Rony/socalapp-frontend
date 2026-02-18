@@ -84,6 +84,10 @@ export default function StorySlider() {
     const fetchStories = async () => {
       try {
         const res = await api.get("/stories/feed");
+
+        console.log("storys",res.data);
+        
+
         if (res.data?.success) {
           dispatch(setStories(res.data.items ?? []));
         }
@@ -180,7 +184,7 @@ export default function StorySlider() {
                 />
               ) : (
                 <div className="flex h-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 p-2 text-xs font-semibold text-white">
-                  {item.lastStory.text}
+                  <p className="text-center">{item.lastStory.text}</p>
                 </div>
               )}
 
@@ -193,6 +197,7 @@ export default function StorySlider() {
                     url={item.owner.avatar.url}
                     provider={item.owner.avatar.provider}
                     alt="avatar"
+                    className="w-full h-full rounded-full object-cover"
                   />
                 )}
               </Avatar>

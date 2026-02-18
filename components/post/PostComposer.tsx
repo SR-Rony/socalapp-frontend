@@ -169,8 +169,6 @@ export default function PostComposer({
 
     const data = res.data;
 
-    console.log("video data", data);
-
     if (!data.ok) {
       console.error("Upload failed:", data.message);
       return;
@@ -231,8 +229,6 @@ export default function PostComposer({
       setLoading(false);
     }
   };
-
-  console.log("videos fgsdgfa",video);
   
 
   /* ========================
