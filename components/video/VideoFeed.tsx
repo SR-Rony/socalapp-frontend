@@ -8,12 +8,14 @@ import ReelPlayer from "./reel/ReelPlayer";
 import ReelActions from "./reel/ReelActions";
 import ReelCommentDrawer from "./reel/ReelCommentDrawer";
 import GeneralVideoCard from "./general/GeneralVideoCard";
-import { VideoItem } from "./types/video";
+import type { VideoItem } from "./types/video";
 
 export default function VideoFeed({
   type,
+  singleVideoId, // optional: _id of single video
 }: {
   type: "reels" | "general";
+  singleVideoId?: string;
 }) {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -24,32 +26,43 @@ export default function VideoFeed({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const loadingRef = useRef(false);
 
+  // 🔹 fetch videos
   const fetchVideos = async () => {
     if (!hasMore || loadingRef.current) return;
-
     loadingRef.current = true;
 
-    const data = await fetchVideoFeed({
-      type,
-      cursor,
-      limit: 5,
-    });
+    try {
+      const data = await fetchVideoFeed({
+        type,
+        cursor,
+        limit: 10,
+      });
 
-    setVideos((prev) => [...prev, ...data.items]);
-    setCursor(data.nextCursor);
-    setHasMore(data.hasMore);
+      // single video filter
+      let newItems = data.items;
+      if (singleVideoId) {
+        newItems = newItems.filter(v => v._id === singleVideoId);
+        setHasMore(false); // single video, no infinite scroll
+      }
 
-    loadingRef.current = false;
+      setVideos(prev => [...prev, ...newItems]);
+      setCursor(data.nextCursor);
+      if (!data.nextCursor) setHasMore(false);
+    } catch (err) {
+      console.error("Video fetch failed", err);
+    } finally {
+      loadingRef.current = false;
+    }
   };
 
-  // 🔁 type change → reset feed
+  // 🔁 reset on type or singleVideoId change
   useEffect(() => {
     setVideos([]);
     setCursor(null);
     setHasMore(true);
     setActiveIndex(0);
     fetchVideos();
-  }, [type]);
+  }, [type, singleVideoId]);
 
   /* =========================================================
      🎬 GENERAL VIDEO (YouTube style feed)
@@ -66,19 +79,36 @@ export default function VideoFeed({
     };
 
     useEffect(() => {
-      window.addEventListener("scroll", handleScroll);
+      if (!singleVideoId) window.addEventListener("scroll", handleScroll);
       return () => window.removeEventListener("scroll", handleScroll);
-    }, [videos, hasMore]);
+    }, [videos, hasMore, singleVideoId]);
 
     return (
-      <div className="w-full max-w-2xl mx-auto py-4 px-2">
-        {videos.map((video) => (
-          <GeneralVideoCard key={video._id} video={video} />
-        ))}
+      <div className="w-full px-4 py-6 container mx-auto">
+        <div
+          className="
+            grid gap-6
+            grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-2
+            lg:grid-cols-3
+            xl:grid-cols-4
+            2xl:grid-cols-5
+          "
+        >
+          {videos.map(video => (
+            <GeneralVideoCard key={video._id} video={video} />
+          ))}
+        </div>
 
-        {!hasMore && (
-          <p className="text-center text-sm text-muted-foreground py-6">
+        {!hasMore && videos.length > 0 && (
+          <p className="text-center text-sm text-muted-foreground py-10">
             No more videos
+          </p>
+        )}
+        {videos.length === 0 && !hasMore && (
+          <p className="text-center text-sm text-muted-foreground py-10">
+            Video not found
           </p>
         )}
       </div>
@@ -86,9 +116,8 @@ export default function VideoFeed({
   }
 
   /* =========================================================
-     🎬 REELS (existing snap UI)
+     🎬 REELS (snap style UI)
   ========================================================== */
-
   const handleScroll = () => {
     if (!containerRef.current) return;
 
@@ -147,9 +176,7 @@ export default function VideoFeed({
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   )}
-                  <span className="font-semibold">
-                    {video.author.username}
-                  </span>
+                  <span className="font-semibold">{video.author.username}</span>
                 </div>
 
                 {video.text && (

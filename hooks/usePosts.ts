@@ -59,6 +59,7 @@ export function usePosts() {
         const res = await api.get<FeedResponse>("/posts/feed", {
           params: { limit: 10 },
         });
+        
 
         if (res.data?.success && Array.isArray(res.data.items)) {
           const mappedPosts: PostData[] = res.data.items.map((item) => {

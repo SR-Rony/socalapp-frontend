@@ -46,6 +46,7 @@ export default function StoryViewer({
   onChange,
 }: Props) {
   const user = stories[userIndex];
+
   
   
 
@@ -58,6 +59,9 @@ export default function StoryViewer({
   
 
   const current = userStories[storyIndex];
+
+  console.log("story view",userStories);
+  
 
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);

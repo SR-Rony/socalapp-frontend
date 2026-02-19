@@ -28,14 +28,14 @@ export default function ReelPlayer({ media, active }: Props) {
   if (!media) return null;
 
   return (
-    <SignedVideo
-      url={media.url}
-      keyPath={media.key}
-      provider={media.provider}
-      loop
-      muted
-      playsInline
-      className="w-full h-full object-cover"
-    />
+    <div>
+      <SignedVideo
+        key={media.key}
+        url={media.url}
+        keyPath={media.key}
+        provider={media.provider}
+        mode="reels"
+      />
+    </div>
   );
 }

@@ -17,12 +17,16 @@ export default function PostMedia({ media }: { media: Media }) {
   }
 
   if (media.type === "video") {
-    return <SignedVideo
-        url={media.url}
-        keyPath={media.key}
-        provider={media.provider}
-      />;
-  }
+      return (
+        <SignedVideo
+          key={media.key} // ✅ important
+          url={media.url}
+          keyPath={media.key}
+          provider={media.provider}
+          mode="feed"
+        />
+      );
+    }
 
   return null;
 }
