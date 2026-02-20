@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageCircle, Share2, ThumbsUp } from "lucide-react";
 import api from "@/lib/api";
 import ShareModal from "@/components/post/share/ShareModal";
@@ -16,19 +16,37 @@ export default function VideoPlayerSection({
 }) {
   const media = video.medias?.[0];
   if (!media) return null;
+  
 
+  /* =========================
+   🔥 Like state
+  ========================= */
   const [liked, setLiked] = useState(video.isLiked ?? false);
   const [likes, setLikes] = useState(video.likeCount ?? 0);
   const [loadingLike, setLoadingLike] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
+  /* =========================
+   🎯 Interest tracking state
+  ========================= */
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const watchStartRef = useRef<number | null>(null);
+  const totalWatchedRef = useRef<number>(0);
+  const interestSentRef = useRef(false);
+// share 
+  const [shared, setShared] = useState(false);
+  const [shares, setShares] = useState(video.shareCount ?? 0);
+  const [loadingShare, setLoadingShare] = useState(false);
+
+  /* =========================
+   👍 Like handler
+  ========================= */
   const handleLike = async () => {
     if (loadingLike) return;
     setLoadingLike(true);
 
     const prevLiked = liked;
 
-    // 🔥 optimistic UI
     setLiked(!prevLiked);
     setLikes((p) => (prevLiked ? p - 1 : p + 1));
 
@@ -39,7 +57,6 @@ export default function VideoPlayerSection({
         await api.post(`/posts/${video._id}/like`);
       }
     } catch {
-      // rollback
       setLiked(prevLiked);
       setLikes((p) => (prevLiked ? p + 1 : p - 1));
     } finally {
@@ -47,16 +64,90 @@ export default function VideoPlayerSection({
     }
   };
 
+  /* =========================
+   ⏱️ Watch time tracking
+  ========================= */
+  const handlePlay = () => {
+    if (watchStartRef.current === null) {
+      watchStartRef.current = Date.now();
+    }
+  };
+
+  const handlePauseOrEnd = () => {
+    if (watchStartRef.current !== null) {
+      const watchedNow =
+        (Date.now() - watchStartRef.current) / 1000; // sec
+      totalWatchedRef.current += watchedNow;
+      watchStartRef.current = null;
+    }
+
+    sendInterestIfNeeded();
+  };
+
+  const sendInterestIfNeeded = async () => {
+    if (interestSentRef.current) return;
+
+    const watchedSec = Math.floor(totalWatchedRef.current);
+
+    if (watchedSec < 180) return; // 3 min rule
+
+    try {
+      await api.post("/videos/interest", {
+        postId: video._id,
+        category: video.category || "general",
+        subCategory: video.subCategory || "",
+        watchedSec,
+      });
+
+      interestSentRef.current = true; // only once
+    } catch (e) {
+      console.log("interest track failed");
+    }
+  };
+//share confirm 
+  const handleConfirmShare = async () => {
+    if (loadingShare || shared) return;
+
+    setLoadingShare(true);
+
+    // 🔥 optimistic UI
+    setShared(true);
+    setShares((p) => p + 1);
+
+    try {
+      await api.post(`/posts/${video._id}/share`);
+    } catch (err) {
+      setShared(false);
+      setShares((p) => p - 1);
+    } finally {
+      setLoadingShare(false);
+      setShowShareModal(false);
+    }
+  };
+
+  /* =========================
+   cleanup on unmount
+  ========================= */
+  useEffect(() => {
+    return () => {
+      handlePauseOrEnd();
+    };
+    // eslint-disable-next-line
+  }, []);
+
   return (
     <>
       {/* 🎬 Player */}
       <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
         <SignedVideo
-          key={media.key}
+          ref={videoRef}
           url={media.url}
           keyPath={media.key}
           provider={media.provider}
           mode="feed"
+          onPlay={handlePlay}
+          onPause={handlePauseOrEnd}
+          onEnded={handlePauseOrEnd}
         />
       </div>
 
@@ -104,7 +195,7 @@ export default function VideoPlayerSection({
             <span>{likes}</span>
           </button>
 
-          {/* 💬 Comment count only */}
+          {/* 💬 Comment count */}
           <div className="flex items-center gap-2 text-muted-foreground">
             <MessageCircle size={20} />
             <span>{video.commentCount}</span>
@@ -116,7 +207,7 @@ export default function VideoPlayerSection({
             className="flex items-center gap-2 text-muted-foreground cursor-pointer"
           >
             <Share2 size={20} />
-            <span>{video.shareCount}</span>
+            <span>{shares}</span>
           </button>
         </div>
       </div>
@@ -129,7 +220,8 @@ export default function VideoPlayerSection({
       <ShareModal
         open={showShareModal}
         onClose={() => setShowShareModal(false)}
-        onConfirm={() => alert("confirm")}
+        onConfirm={handleConfirmShare}
+        videoId={video._id}
       />
     </>
   );

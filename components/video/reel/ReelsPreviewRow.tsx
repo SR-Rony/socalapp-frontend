@@ -65,8 +65,11 @@ export default function ReelsPreviewRow({ reels }: ReelsPreviewRowProps) {
             className="min-w-[220px] max-w-[220px] h-[390px] rounded-xl overflow-hidden bg-black"
           >
             <ReelPlayer
-                media={reel.video} // pass video media
-                active={false}     // preview mode
+              media={reel.video}
+              active={true}        // user opened full reel
+              videoId={reel._id}   // interest tracking
+              category={reel.category}
+              subCategory={reel.subCategory}
             />
           </Link>
         ))}

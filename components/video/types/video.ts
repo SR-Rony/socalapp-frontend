@@ -22,6 +22,6 @@ export type VideoItem = {
   viewCount?: number;
   isLiked?: boolean;
   createdAt?: string | number | Date;
-  
+  category?: string;
   subCategory?: string; // ✅ add this line
 };

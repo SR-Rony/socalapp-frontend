@@ -1,5 +1,7 @@
+"use client";
+
 import { useResolvedMediaUrl } from "@/hooks/useResolvedMediaUrl";
-import { memo, useRef, useState } from "react";
+import { memo, useRef, useState, forwardRef } from "react";
 import { useVideoInView } from "@/hooks/useVideoInView";
 import { Volume2, VolumeX } from "lucide-react";
 
@@ -12,64 +14,79 @@ type SignedVideoProps = {
   posterUrl?: string;
   mode?: VideoMode;
   className?: string;
+
+  /* 🎯 video events */
+  onPlay?: () => void;
+  onPause?: () => void;
+  onEnded?: () => void;
 };
 
-function SignedVideoBase({
-  url,
-  keyPath,
-  provider,
-  posterUrl,
-  mode = "feed",
-  className = "",
-}: SignedVideoProps) {
-  const finalUri = useResolvedMediaUrl({ url, keyPath, provider });
-  const videoRef = useRef<HTMLVideoElement>(null);
+const SignedVideoBase = forwardRef<HTMLVideoElement, SignedVideoProps>(
+  (
+    {
+      url,
+      keyPath,
+      provider,
+      posterUrl,
+      mode = "feed",
+      className = "",
+      onPlay,
+      onPause,
+      onEnded,
+    },
+    ref,
+  ) => {
+    const finalUri = useResolvedMediaUrl({ url, keyPath, provider });
 
-  const isReels = mode === "reels";
+    const internalRef = useRef<HTMLVideoElement>(null);
 
-  // 🔇 default muted (feed + reels both)
-  const [muted, setMuted] = useState(true);
+    // 👇 use external ref if provided, else internal
+    const videoRef =
+      (ref as React.MutableRefObject<HTMLVideoElement | null>) || internalRef;
 
-  // ✅ viewport autoplay/pause for BOTH feed & reels
-  useVideoInView(videoRef, true);
+    const isReels = mode === "reels";
 
-  if (!finalUri) return null;
+    const [muted, setMuted] = useState(true);
 
-  // ▶️ Reels tap play/pause
-  const togglePlay = () => {
-    if (!videoRef.current) return;
+    useVideoInView(videoRef, true);
 
-    if (videoRef.current.paused) {
-      videoRef.current.play().catch(() => {});
-    } else {
-      videoRef.current.pause();
-    }
-  };
+    if (!finalUri) return null;
 
-  // 🔊 sound toggle (reels only UI, but feed still can unmute via controls)
-  const toggleSound = () => {
-    if (!videoRef.current) return;
+    const togglePlay = () => {
+      if (!videoRef.current) return;
 
-    videoRef.current.muted = !videoRef.current.muted;
-    setMuted(videoRef.current.muted);
-  };
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
+    };
 
-  return (
-    <div className={`relative w-full ${isReels ? "h-screen" : ""}`}>
-      <video
-        ref={videoRef}
-        src={finalUri}
-        loop
-        muted={muted}
-        playsInline
-        poster={posterUrl}
-        controls={!isReels} // 🎛 Feed → controls ON | Reels → OFF
-        className={`w-full h-full ${className}`}
-        onClick={isReels ? togglePlay : undefined}
-      />
+    const toggleSound = () => {
+      if (!videoRef.current) return;
 
-      {/* 🔊 Reels sound button */}
-      {isReels && (
+      videoRef.current.muted = !videoRef.current.muted;
+      setMuted(videoRef.current.muted);
+    };
+
+    return (
+      <div className={`relative w-full ${isReels ? "h-screen" : ""}`}>
+        <video
+          ref={videoRef}
+          src={finalUri}
+          loop
+          muted={muted}
+          playsInline
+          poster={posterUrl}
+          controls={!isReels}
+          className={`w-full h-full ${className}`}
+          onClick={isReels ? togglePlay : undefined}
+          onPlay={onPlay}
+          onPause={onPause}
+          onEnded={onEnded}
+        />
+
+        {isReels && (
           <button
             onClick={toggleSound}
             className="absolute bottom-4 right-4 bg-black/60 text-white p-2 rounded-full"
@@ -81,8 +98,11 @@ function SignedVideoBase({
             )}
           </button>
         )}
-    </div>
-  );
-}
+      </div>
+    );
+  },
+);
+
+SignedVideoBase.displayName = "SignedVideo";
 
 export const SignedVideo = memo(SignedVideoBase);

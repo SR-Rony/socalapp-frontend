@@ -22,6 +22,10 @@ export default function ReelActions({ reel, onCommentClick }: ReelActionsProps) 
   const [loadingLike, setLoadingLike] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
+  const [shared, setShared] = useState(false);
+  const [shares, setShares] = useState(reel.shareCount ?? 0);
+  const [loadingShare, setLoadingShare] = useState(false);
+
   const handleLike = async () => {
     if (loadingLike) return;
     setLoadingLike(true);
@@ -52,10 +56,25 @@ export default function ReelActions({ reel, onCommentClick }: ReelActionsProps) 
   };
 
   //handleConfirmShare
-  const handleConfirmShare =()=>{
-    alert("confirm")
-    
-  }
+  const handleConfirmShare = async () => {
+    if (loadingShare || shared) return;
+
+    setLoadingShare(true);
+
+    // optimistic
+    setShared(true);
+    setShares((p) => p + 1);
+
+    try {
+      await api.post(`/posts/${reel._id}/share`);
+    } catch (err) {
+      setShared(false);
+      setShares((p) => p - 1);
+    } finally {
+      setLoadingShare(false);
+      setShowShareModal(false);
+    }
+  };
 
   return (
     <>
@@ -80,7 +99,7 @@ export default function ReelActions({ reel, onCommentClick }: ReelActionsProps) 
         >
           <Share2 size={28} />
           {reel.shareCount > 0 && (
-            <span className="text-sm">{reel.shareCount}</span>
+            <span className="text-sm">{shares}</span>
           )}
         </button>
       </div>
@@ -88,6 +107,7 @@ export default function ReelActions({ reel, onCommentClick }: ReelActionsProps) 
         open={showShareModal}
         onClose={() => setShowShareModal(false)}
         onConfirm={handleConfirmShare}
+        videoId={reel._id}
       />
     </>
   );

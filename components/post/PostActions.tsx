@@ -140,6 +140,7 @@ export default function PostActions({
         open={showShareModal}
         onClose={() => setShowShareModal(false)}
         onConfirm={handleConfirmShare}
+        videoId={post._id}
       />
     </div>
   );
