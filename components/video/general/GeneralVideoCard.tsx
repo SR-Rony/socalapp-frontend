@@ -3,25 +3,18 @@
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SignedImage } from "@/components/common/SignedImage";
-import { ThumbsUp, MessageCircle, Share2 } from "lucide-react";
 import type { VideoItem } from "../types/video";
 
 type Props = {
-  video: VideoItem;
-  onCommentClick?: (video: VideoItem) => void;
+  video: VideoItem & { createdAt?: string | number | Date }; // createdAt optional
 };
 
-export default function GeneralVideoCard({ video, onCommentClick }: Props) {
-  
-
-
+export default function GeneralVideoCard({ video }: Props) {
   const router = useRouter();
   const media = video.medias?.[0];
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [hovered, setHovered] = useState(false);
-  const [liked, setLiked] = useState(video.isLiked ?? false);
-  const [likeCount, setLikeCount] = useState(video.likeCount ?? 0);
 
   if (!media) return null;
 
@@ -46,22 +39,30 @@ export default function GeneralVideoCard({ video, onCommentClick }: Props) {
     return `${views} views`;
   }, [video.viewCount]);
 
-  // 🔢 number formatter
-  const formatNumber = (num?: number) => {
-    const n = num ?? 0;
+  // 🕒 time ago (optional, only if exists and valid)
+  const timeAgo = useMemo(() => {
+    if (!video.createdAt) return "";
 
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+    let createdAtDate: Date;
+    try {
+      createdAtDate =
+        video.createdAt instanceof Date
+          ? video.createdAt
+          : new Date(video.createdAt); // string | number → Date
+      if (isNaN(createdAtDate.getTime())) return "";
+    } catch {
+      return "";
+    }
 
-    return `${n}`;
-  };
+    const diff = Date.now() - createdAtDate.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(hours / 24);
 
-  // 👍 like toggle
-  const handleLike = (e: React.MouseEvent) => {
-    e.stopPropagation(); // navigation prevent
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => (liked ? Math.max(prev - 1, 0) : prev + 1));
-  };
+    if (days > 0) return `${days} days ago`;
+    if (hours > 0) return `${hours} hours ago`;
+
+    return "Just now";
+  }, [video.createdAt]);
 
   // ▶ hover preview autoplay
   const handleMouseEnter = () => {
@@ -78,15 +79,16 @@ export default function GeneralVideoCard({ video, onCommentClick }: Props) {
   };
 
   return (
-    <div className="w-full">
+    <div
+      className="w-full cursor-pointer"
+      onClick={() => router.push(`/feed/videos/general/${video._id}`)}
+    >
       {/* 🎬 Thumbnail / Hover Preview */}
       <div
-        className="relative w-full aspect-video bg-black rounded-xl overflow-hidden cursor-pointer"
-        onClick={() => router.push(`/feed/videos/general/${video._id}`)}
+        className="relative w-full aspect-video bg-black rounded-xl overflow-hidden"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Thumbnail */}
         {!hovered && (
           <SignedImage
             url={media.thumbnailUrl || media.url}
@@ -97,7 +99,6 @@ export default function GeneralVideoCard({ video, onCommentClick }: Props) {
           />
         )}
 
-        {/* Hover autoplay video */}
         {hovered && (
           <video
             ref={videoRef}
@@ -108,7 +109,6 @@ export default function GeneralVideoCard({ video, onCommentClick }: Props) {
           />
         )}
 
-        {/* Duration badge */}
         {duration && (
           <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">
             {duration}
@@ -137,43 +137,9 @@ export default function GeneralVideoCard({ video, onCommentClick }: Props) {
 
           <p className="text-xs text-muted-foreground">
             {formattedViews}
+            {timeAgo && ` • ${timeAgo}`}
           </p>
         </div>
-      </div>
-
-      {/* 🔥 Actions Row */}
-      <div className="flex items-center gap-6 mt-3 text-sm text-muted-foreground">
-        {/* Like */}
-        <button
-          onClick={handleLike}
-          className={`flex items-center gap-1 ${
-            liked ? "text-blue-600" : "hover:text-foreground"
-          }`}
-        >
-          <ThumbsUp size={18} />
-          <span>{formatNumber(likeCount)}</span>
-        </button>
-
-        {/* Comment */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onCommentClick?.(video);
-          }}
-          className="flex items-center gap-1 hover:text-foreground"
-        >
-          <MessageCircle size={18} />
-          <span>{formatNumber(video.commentCount)}</span>
-        </button>
-
-        {/* Share */}
-        <button
-          onClick={(e) => e.stopPropagation()}
-          className="flex items-center gap-1 hover:text-foreground"
-        >
-          <Share2 size={18} />
-          <span>{formatNumber(video.shareCount)}</span>
-        </button>
       </div>
     </div>
   );

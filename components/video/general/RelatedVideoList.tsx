@@ -20,7 +20,7 @@ export default function RelatedVideoList({
         return (
           <div
             key={video._id}
-            onClick={() => router.push(`/videos/${video._id}`)}
+            onClick={() => router.push(`/feed/videos/general/${video._id}`)}
             className="flex gap-3 cursor-pointer"
           >
             {/* thumbnail */}

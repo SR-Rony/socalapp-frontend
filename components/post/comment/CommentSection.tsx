@@ -158,6 +158,11 @@ export default function CommentSection({ postId }: Props) {
   return (
   <div className="flex h-full flex-col">
 
+    {/* 🔥 Fixed Bottom Input */}
+      <div className=" py-3">
+        <CommentInput postId={postId} onAdd={handleAddComment} />
+      </div>
+
       {/* 🔥 Scrollable Comment List */}
       <div className="flex-1 space-y-4 overflow-y-auto py-4">
         {comments.map((c) => (
@@ -180,11 +185,6 @@ export default function CommentSection({ postId }: Props) {
           {loading && ( 
             <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" /> )} 
           </button> )}
-      </div>
-
-      {/* 🔥 Fixed Bottom Input */}
-      <div className="border-t bg-white p-3">
-        <CommentInput postId={postId} onAdd={handleAddComment} />
       </div>
     </div>
   );

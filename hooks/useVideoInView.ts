@@ -1,33 +1,26 @@
-import { useEffect } from "react";
+import { RefObject, useEffect } from "react";
 
-export function useVideoInView(
-  videoRef: React.RefObject<HTMLVideoElement>,
-  enabled: boolean
-) {
+export const useVideoInView = (
+  ref: RefObject<HTMLVideoElement | null>, // ✅ FIX
+  autoPlay = true
+) => {
   useEffect(() => {
-    if (!enabled || !videoRef.current) return;
-
-    const video = videoRef.current;
+    const video = ref.current;
+    if (!video) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!video) return;
-
         if (entry.isIntersecting) {
-          video.play().catch(() => {});
+          autoPlay && video.play().catch(() => {});
         } else {
           video.pause();
         }
       },
-      {
-        threshold: 0.6, // 60% visible হলে play
-      }
+      { threshold: 0.6 }
     );
 
     observer.observe(video);
 
-    return () => {
-      observer.disconnect();
-    };
-  }, [videoRef, enabled]);
-}
+    return () => observer.disconnect();
+  }, [ref, autoPlay]);
+};

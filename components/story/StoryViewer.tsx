@@ -4,12 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { SignedImage } from "@/components/common/SignedImage";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { SignedVideo } from "../common/SignedVideo";
 
 type StoryMedia = {
   url: string;
   key?: string;
   provider?: string;
+  thumbnailUrl?: string;
 };
 
 type StoryItem = {
@@ -47,35 +47,25 @@ export default function StoryViewer({
 }: Props) {
   const user = stories[userIndex];
 
-  
-  
-
   const userStories =
     user.stories && user.stories.length > 0
       ? user.stories
       : user.lastStory
       ? [user.lastStory]
       : [];
-  
 
   const current = userStories[storyIndex];
 
-  console.log("story view",userStories);
-  
+  // 🛑 crash protection
+  if (!current) return null;
+
+  // ⏱️ fixed duration (সব story same timing)
+  const duration = 7000;
 
   const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [videoDuration, setVideoDuration] = useState<number | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 🚫 crash protection
-  if (!current) return null;
-
-  const duration =
-    current.type === "video"
-      ? (videoDuration || 10) * 1000
-      : 7000;
 
   // 👉 NEXT
   const next = () => {
@@ -112,15 +102,9 @@ export default function StoryViewer({
     }
   };
 
-  // 🔁 reset video duration on story change
-  useEffect(() => {
-    setVideoDuration(null);
-  }, [userIndex, storyIndex]);
-
   // 👉 AUTO PROGRESS
   useEffect(() => {
     if (isPaused) return;
-    if (current.type === "video" && !videoDuration) return;
 
     setProgress(0);
 
@@ -143,9 +127,9 @@ export default function StoryViewer({
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [userIndex, storyIndex, duration, isPaused, videoDuration]);
+  }, [userIndex, storyIndex, isPaused]);
 
-  // 👉 pause handlers
+  // 👉 pause handlers (hold to pause)
   const handleHoldStart = () => {
     setIsPaused(true);
     if (timerRef.current) clearInterval(timerRef.current);
@@ -166,7 +150,7 @@ export default function StoryViewer({
         onTouchStart={handleHoldStart}
         onTouchEnd={handleHoldEnd}
       >
-        {/* LEFT */}
+        {/* ⬅️ LEFT */}
         {(userIndex > 0 || storyIndex > 0) && (
           <button
             onClick={prev}
@@ -176,7 +160,7 @@ export default function StoryViewer({
           </button>
         )}
 
-        {/* RIGHT */}
+        {/* ➡️ RIGHT */}
         {(userIndex < stories.length - 1 ||
           storyIndex < userStories.length - 1) && (
           <button
@@ -187,7 +171,7 @@ export default function StoryViewer({
           </button>
         )}
 
-        {/* STORY CARD */}
+        {/* 📱 STORY CARD */}
         <div className="relative h-full w-full overflow-hidden rounded-xl bg-black">
           {/* 🔥 PROGRESS BARS */}
           <div className="absolute left-2 right-2 top-2 z-20 flex gap-1">
@@ -211,7 +195,7 @@ export default function StoryViewer({
             ))}
           </div>
 
-          {/* HEADER */}
+          {/* 👤 HEADER */}
           <div className="absolute left-4 right-4 top-4 z-20 flex items-center gap-3 text-white">
             <Avatar className="h-10 w-10 border border-white">
               {user.owner.avatar && (
@@ -220,7 +204,7 @@ export default function StoryViewer({
                   url={user.owner.avatar.url}
                   provider={user.owner.avatar.provider}
                   alt="avatar"
-                  className="w-full h-full rounded-full object-cover"
+                  className="h-full w-full rounded-full object-cover"
                 />
               )}
             </Avatar>
@@ -235,32 +219,22 @@ export default function StoryViewer({
             </div>
           </div>
 
-          {/* CONTENT */}
-          {current.type === "video" ? (
-            <SignedVideo
-              url={current.media!.url}
-              keyPath={current.media!.key}
-              provider={current.media!.provider}
-              onLoadedMetadata={(e: any) =>
-                setVideoDuration(e.target.duration)
-              }
-              autoPlay
-            />
-          ) : current.type === "image" ? (
+          {/* 🖼️ CONTENT */}
+          {current.type === "text" ? (
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 p-6 text-center text-lg font-semibold text-white">
+              <p>{current.text}</p>
+            </div>
+          ) : current.media ? (
             <SignedImage
-              keyPath={current.media!.key}
-              url={current.media!.url}
-              provider={current.media!.provider}
+              url={current.media.thumbnailUrl || current.media.url}
+              keyPath={current.media.key}
+              provider={current.media.provider}
               alt="story"
               className="h-full w-full object-cover"
             />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-purple-500 to-pink-500 p-6 text-center text-lg font-semibold text-white">
-              <p className="text-center">{current.text}</p>
-            </div>
-          )}
+          ) : null}
 
-          {/* CLOSE */}
+          {/* ❌ CLOSE */}
           <button
             onClick={onClose}
             className="absolute right-4 top-4 z-30 rounded-full bg-black/60 px-3 py-1 text-white"

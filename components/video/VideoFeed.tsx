@@ -10,13 +10,12 @@ import ReelCommentDrawer from "./reel/ReelCommentDrawer";
 import GeneralVideoCard from "./general/GeneralVideoCard";
 import type { VideoItem } from "./types/video";
 
-export default function VideoFeed({
-  type,
-  singleVideoId, // optional: _id of single video
-}: {
+type VideoFeedProps = {
   type: "reels" | "general";
   singleVideoId?: string;
-}) {
+};
+
+export default function VideoFeed({ type, singleVideoId }: VideoFeedProps) {
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [cursor, setCursor] = useState<any>(null);
@@ -38,10 +37,11 @@ export default function VideoFeed({
         limit: 10,
       });
 
+      let newItems: VideoItem[] = data.items;
+
       // single video filter
-      let newItems = data.items;
       if (singleVideoId) {
-        newItems = newItems.filter(v => v._id === singleVideoId);
+        newItems = newItems.filter((v: VideoItem) => v._id === singleVideoId);
         setHasMore(false); // single video, no infinite scroll
       }
 
@@ -96,7 +96,7 @@ export default function VideoFeed({
             2xl:grid-cols-5
           "
         >
-          {videos.map(video => (
+          {videos.map((video: VideoItem) => (
             <GeneralVideoCard key={video._id} video={video} />
           ))}
         </div>
@@ -155,8 +155,9 @@ export default function VideoFeed({
         onScroll={handleScroll}
         className="h-full w-full md:w-1/3 mx-auto overflow-y-hidden snap-y snap-mandatory"
       >
-        {videos.map((video, index) => {
+        {videos.map((video: VideoItem, index: number) => {
           const media = video.medias?.[0];
+          const author = video.author;
 
           return (
             <div
@@ -168,15 +169,15 @@ export default function VideoFeed({
               {/* author + caption */}
               <div className="absolute bottom-16 left-4 right-20 text-white space-y-2 max-w-xs sm:max-w-sm">
                 <div className="flex items-center gap-2">
-                  {video.author.avatar?.url && (
+                  {author?.avatar?.url && (
                     <SignedImage
-                      url={video.author.avatar.url}
-                      keyPath={video.author.avatar.key}
-                      provider={video.author.avatar.provider}
+                      url={author.avatar.url}
+                      keyPath={author.avatar.key}
+                      provider={author.avatar.provider}
                       className="w-8 h-8 rounded-full object-cover"
                     />
                   )}
-                  <span className="font-semibold">{video.author.username}</span>
+                  <span className="font-semibold">{author?.username || "Unknown"}</span>
                 </div>
 
                 {video.text && (
@@ -187,7 +188,13 @@ export default function VideoFeed({
               {/* actions */}
               <div className="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col items-center gap-5 text-white">
                 <ReelActions
-                  reel={video}
+                  reel={{
+                    _id: video._id,
+                    likeCount: video.likeCount ?? 0,
+                    commentCount: video.commentCount ?? 0,
+                    shareCount: video.shareCount ?? 0,
+                    isLiked: video.isLiked ?? false,
+                  }}
                   onCommentClick={() => setCommentReel(video)}
                 />
               </div>
@@ -215,7 +222,20 @@ export default function VideoFeed({
         <ReelCommentDrawer
           open={!!commentReel}
           onClose={() => setCommentReel(null)}
-          reel={commentReel}
+          reel={{
+            _id: commentReel._id,
+            text: commentReel.text,
+            author: {
+              username: commentReel.author?.username || "Unknown",
+              avatar: commentReel.author?.avatar
+                ? {
+                    url: commentReel.author.avatar.url,
+                    key: commentReel.author.avatar.key,
+                    provider: commentReel.author.avatar.provider,
+                  }
+                : undefined,
+            },
+          }}
         />
       )}
     </div>
