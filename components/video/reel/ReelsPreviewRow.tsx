@@ -4,6 +4,8 @@ import { useRef, useState, useEffect } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import ReelPlayer from "./ReelPlayer";
 import Link from "next/link";
+import { SignedImage } from "@/components/common/SignedImage";
+import { useRouter } from "next/navigation";
 
 interface ReelsPreviewRowProps {
   reels: any[];
@@ -11,6 +13,7 @@ interface ReelsPreviewRowProps {
 
 export default function ReelsPreviewRow({ reels }: ReelsPreviewRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // 👇 track which chunk of reels is currently visible
   const [visibleIndex, setVisibleIndex] = useState(0);
@@ -60,18 +63,25 @@ export default function ReelsPreviewRow({ reels }: ReelsPreviewRowProps) {
         className="flex gap-3 overflow-hidden scroll-smooth"
       >
         {reels.map((reel) => (
-          <Link href={'/feed/videos/reels'}
+          <div onClick={() => router.push(`/feed/videos/reels/${reel._id}`)}
             key={reel._id}
             className="min-w-[220px] max-w-[220px] h-[390px] rounded-xl overflow-hidden bg-black"
           >
-            <ReelPlayer
+            {/* <ReelPlayer
               media={reel.video}
               active={true}        // user opened full reel
               videoId={reel._id}   // interest tracking
               category={reel.category}
               subCategory={reel.subCategory}
-            />
-          </Link>
+            /> */}
+            <SignedImage
+                url={reel.video.thumbnailUrl || reel.video.url}
+                keyPath={reel.video.key}
+                provider={reel.video.provider}
+                alt={"video thumbnail"}
+                className="w-full h-full"
+              />
+          </div>
         ))}
       </div>
 
