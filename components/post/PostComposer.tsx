@@ -154,36 +154,60 @@ export default function PostComposer({
  const handleVideoUpload = async (file: File | null) => {
   if (!file) return;
 
-  setType("video");
+  // 🎬 create temp video element to read duration
+  const videoEl = document.createElement("video");
+  videoEl.preload = "metadata";
 
-  const form = new FormData();
-  form.append("file", file);
+  videoEl.onloadedmetadata = async () => {
+    window.URL.revokeObjectURL(videoEl.src);
 
-  try {
-    const res = await api.post("/upload/video", form, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const duration = videoEl.duration; // ⏱️ seconds
 
-    const data = res.data;
-
-    if (!data.ok) {
-      console.error("Upload failed:", data.message);
+    // ❌ যদি ১ মিনিট (60s) এর বেশি হয়
+    if (duration > 60) {
+      toast.error("Video must be 1 minute or less");
       return;
     }
 
-    setVideo({
-      url: data.url,              // ✅ Wasabi video URL
-      type: "video",
-      provider: data.provider,   // "wasabi"
-      key: data.key,
-      thumbnailUrl: data.thumbnailUrl || "", // যদি backend দেয়
-      durationSec: data.durationSec || 0,
-    });
-  } catch (err: any) {
-    console.error("Video upload error:", err?.response?.data || err.message);
-  }
+    // ✅ valid হলে upload হবে
+    setType("video");
+
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const res = await api.post("/upload/video", form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      const data = res.data;
+
+      if (!data.ok) {
+        console.error("Upload failed:", data.message);
+        toast.error("Video upload failed");
+        return;
+      }
+
+      setVideo({
+        url: data.url,
+        type: "video",
+        provider: data.provider,
+        key: data.key,
+        thumbnailUrl: data.thumbnailUrl || "",
+        durationSec: data.durationSec || Math.round(duration),
+      });
+
+      toast.success("Video uploaded");
+    } catch (err: any) {
+      console.error("Video upload error:", err?.response?.data || err.message);
+      toast.error("Video upload error");
+    }
+  };
+
+  // 🎯 load file to get metadata
+  videoEl.src = URL.createObjectURL(file);
 };
 
 
@@ -280,7 +304,6 @@ export default function PostComposer({
             <h2 className="text-base font-semibold">
               {mode === "edit" ? "Edit post" : "Create post"}
             </h2>
-            <X className="cursor-pointer" onClick={() => setOpen(false)} />
           </div>
 
           {/* User */}
