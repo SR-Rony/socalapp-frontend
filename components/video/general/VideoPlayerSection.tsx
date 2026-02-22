@@ -16,6 +16,9 @@ export default function VideoPlayerSection({
 }) {
   const media = video.medias?.[0];
   if (!media) return null;
+
+  console.log("video",video);
+  
   
 
   /* =========================

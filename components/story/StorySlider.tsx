@@ -84,8 +84,6 @@ export default function StorySlider() {
     const fetchStories = async () => {
       try {
         const res = await api.get("/stories/feed");
-
-        console.log("storys",res.data);
         
 
         if (res.data?.success) {

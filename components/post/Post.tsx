@@ -101,36 +101,45 @@ export default function Post({
         </div>
 
         {isMe && (
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setOpen((p) => !p)}
-              className="p-2 rounded-full hover:bg-muted"
-            >
-              <MoreHorizontal size={18} />
-            </button>
+  <div className="relative" ref={menuRef}>
+    <button
+      onClick={() => setOpen((p) => !p)}
+      className="p-2 rounded-full hover:bg-muted transition"
+    >
+      <MoreHorizontal size={18} />
+    </button>
 
-            {open && (
-              <div className="absolute right-0 mt-1 w-40 rounded-md border bg-white shadow z-20">
-                <button
-                  onClick={() => onEdit?.(post)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-muted"
-                >
-                  <Edit3 size={16} />
-                  Edit post
-                </button>
+    {open && (
+      <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95">
+        
+        {/* EDIT */}
+        <button
+          onClick={() => {
+            setOpen(false);
+            onEdit?.(post);
+          }}
+          className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-muted transition"
+        >
+          <Edit3 size={18} className="text-muted-foreground" />
+          <span>Edit post</span>
+        </button>
 
-                <button
-                  onClick={() => {
-                    onDelete?.(post._id)}}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-muted"
-                >
-                  <Trash2 size={16} />
-                  Delete post
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        {/* DELETE */}
+        <button
+          onClick={() => {
+            setOpen(false);
+            onDelete?.(post._id);
+          }}
+          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition"
+        >
+          <Trash2 size={18} />
+          <span>Move to trash</span>
+        </button>
+
+      </div>
+    )}
+  </div>
+)}
       </div>
 
       {/* content */}
