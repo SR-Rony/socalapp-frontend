@@ -48,7 +48,7 @@ export interface FeedResponse {
   items: FeedItem[];
 }
 
-// 👇 Custom hook
+// 💡 Updated usePosts
 export function usePosts() {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +59,6 @@ export function usePosts() {
         const res = await api.get<FeedResponse>("/posts/feed", {
           params: { limit: 10 },
         });
-        
 
         if (res.data?.success && Array.isArray(res.data.items)) {
           const mappedPosts: PostData[] = res.data.items.map((item) => {
@@ -84,7 +83,7 @@ export function usePosts() {
               },
               content: post.text,
               time: post.createdAt,
-              media: post.medias?.[0] || null,
+              media: post.medias?.[0] || undefined, // ✅ null → undefined
               likeCount: post.likeCount,
               commentCount: post.commentCount,
               shareCount: post.shareCount,
@@ -108,5 +107,5 @@ export function usePosts() {
     fetchFeed();
   }, []);
 
-  return { posts, loading };
+  return { posts, setPosts, loading };
 }

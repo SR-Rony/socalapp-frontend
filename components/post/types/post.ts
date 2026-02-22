@@ -11,11 +11,11 @@ export type PostData = {
   user: {
     userId: string;
     name: string;
-    avatar?: Media;
+    avatar?: Media; // Media | undefined ✅
   };
   time: string;
   content: string;
-  media?: Media | null;
+  media?: Media; // Media | undefined ✅
   likeCount: number;
   commentCount: number;
   shareCount: number;
