@@ -97,7 +97,15 @@ const menu: MenuItem[] = [
   },
   { title: "People", icon: Users, href: "/people" },
   { title: "Pages", icon: Layers, href: "/pages" },
-  { title: "Groups", icon: Users, href: "/groups" },
+  {
+    title: "Groups",
+    icon: Users,
+    children: [
+      { title: "Suggested For Groups", href: "/groups", icon: Users },
+      { title: "My Groups", href: "/groups/my", icon: User },
+      { title: "Create Groups", href: "/groups/create", icon: User },
+    ],
+  },
   { title: "Events", icon: Flag, href: "/events" },
   { title: "Reels", icon: PlayCircle, href: "/feed/videos/reels" },
   { title: "Watch", icon: Video, href: "/feed/videos/general" },
