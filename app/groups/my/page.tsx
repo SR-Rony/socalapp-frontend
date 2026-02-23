@@ -124,8 +124,8 @@ export default function MyGroupsPage() {
   // main UI
   // ===============================
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-bold">Your Groups</h1>
+    <div className="max-w-5xl mx-auto p-4 space-y-4 bg-white mt-4 rounded-xl">
+      <h1 className="text-2xl font-bold text-center mb-4">Your Groups</h1>
 
       {groups.map((item) => (
         <Link
