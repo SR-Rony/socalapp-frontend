@@ -120,6 +120,8 @@ export default function GroupMembersPage() {
       // optimistic remove from current tab
       setItems((prev) => prev.filter((i) => i.membershipId !== membershipId));
     } catch (err: any) {
+      console.log(err?.response?.data);
+      
       toast.error(err?.response?.data?.message || "Action failed");
 
       // fallback refetch to keep UI correct
@@ -164,7 +166,7 @@ export default function GroupMembersPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 mt-4">
+    <div className=" mx-auto space-y-4 mt-4 bg-white p-4 rounded-xl">
       <h1 className="text-xl font-bold text-center">Members</h1>
 
       {/* 🧭 Tabs */}
@@ -191,7 +193,7 @@ export default function GroupMembersPage() {
       {/* 👥 list */}
       {items.map((m) => (
         <Card key={m.membershipId}>
-          <CardContent className="p-4 flex items-center justify-between">
+          <CardContent className="px-2 flex items-center justify-between">
             {/* user */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">

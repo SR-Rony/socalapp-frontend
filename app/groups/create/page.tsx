@@ -158,8 +158,8 @@ export default function CreateGroupPage() {
   // UI
   // ===============================
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Create Group</h1>
+    <div className="max-w-3xl mx-auto p-4 space-y-6 mt-4 bg-white rounded-xl">
+      <h1 className="text-2xl font-bold text-center my-2">Create Group</h1>
 
       {/* name */}
       <div>

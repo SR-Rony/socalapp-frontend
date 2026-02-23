@@ -93,21 +93,6 @@ export default function ForYouGroupsPage() {
     return () => observer.disconnect();
   }, [cursor, loadingMore]);
 
-  // 🤝 join group
-  const handleJoin = async (groupId: string) => {
-    try {
-      const res = await api.post(`/groups/${groupId}/join`);
-
-      if (res.data.success) {
-        toast.success(res.data.message || "Join request sent");
-
-        // optimistic update → remove from for-you
-        setGroups((prev) => prev.filter((g) => g._id !== groupId));
-      }
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Join failed");
-    }
-  };
 
   if (loading) {
     return (
@@ -128,8 +113,8 @@ export default function ForYouGroupsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold">Suggested for you</h1>
+    <div className="max-w-5xl mx-auto space-y-4 bg-white p-4 rounded-xl mt-4">
+      <h1 className="text-2xl font-bold text-center my-4 ">Suggested for you</h1>
 
       <div className="grid md:grid-cols-3 gap-4">
         {groups.map((group) => (

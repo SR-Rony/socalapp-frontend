@@ -137,7 +137,7 @@ export default function GroupDetailsPage() {
   if (!group) return <p className="text-center mt-10">Group not found</p>;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4 mt-4">
+    <div className="max-w-5xl mx-auto space-y-4 p-4 mt-4 bg-white rounded-xl">
       {/* 🖼 Cover */}
       <div className="w-full h-64 bg-muted rounded-xl overflow-hidden">
         {group.coverUrl?.url ? (

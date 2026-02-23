@@ -101,7 +101,8 @@ const menu: MenuItem[] = [
     title: "Groups",
     icon: Users,
     children: [
-      { title: "Suggested For Groups", href: "/groups", icon: Users },
+      { title: "Groups", href: "/groups", icon: Users },
+      { title: "Suggested For Groups", href: "/groups/for-you", icon: Users },
       { title: "My Groups", href: "/groups/my", icon: User },
       { title: "Create Groups", href: "/groups/create", icon: User },
     ],
