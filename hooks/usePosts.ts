@@ -5,50 +5,23 @@ import api from "@/lib/api";
 import type { Media } from "@/components/post/Post";
 import { PostData } from "@/components/post/types/post";
 
-// 👇 Author type
 interface FeedAuthor {
   _id: string;
   name: string;
   username?: string;
   avatar?: Media;
-  isFollowing?: boolean;
+  isMe?: boolean;
 }
 
-// 👇 Single feed item data
-interface FeedItemData {
-  _id: string;
-  author: FeedAuthor;
-  text: string;
-  medias?: Media[];
-  createdAt: string;
-  likeCount: number;
-  commentCount: number;
-  shareCount: number;
-  isLiked: boolean;
-  isShared: boolean;
-  category?: string;
-  subCategory?: string;
-  type?: string;
-  videoMode?: string;
-  viewCount?: number;
-  loop?: boolean;
-  mutedByDefault?: boolean;
-  saveCount?: number;
-  updatedAt?: string;
+interface FeedItem {
+  data: any; // 🔥 allow mixed shape (post + groupPost)
 }
 
-// 👇 Feed API response item
-export interface FeedItem {
-  data: FeedItemData;
-}
-
-// 👇 Full feed response
-export interface FeedResponse {
+interface FeedResponse {
   success: boolean;
   items: FeedItem[];
 }
 
-// 💡 Updated usePosts
 export function usePosts() {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,22 +46,31 @@ export function usePosts() {
                 }
               : undefined;
 
+            const isGroupPost = post.feedType === "groupPost";
+
             return {
               _id: post._id,
               authorId: post.author._id,
+
               user: {
                 userId: post.author._id,
                 name: post.author.name,
                 avatar,
               },
+
               content: post.text,
               time: post.createdAt,
-              media: post.medias?.[0] || undefined, // ✅ null → undefined
-              likeCount: post.likeCount,
-              commentCount: post.commentCount,
-              shareCount: post.shareCount,
+              media: post.medias?.[0] || undefined,
+
+              likeCount: post.likeCount ?? post.counts?.likeCount ?? 0,
+              commentCount: post.commentCount ?? post.counts?.commentCount ?? 0,
+              shareCount: post.shareCount ?? post.counts?.shareCount ?? 0,
               isLiked: post.isLiked,
               isShared: post.isShared,
+
+              // 🔥 NEW
+              isGroupPost,
+              groupId: isGroupPost ? post.group?._id : undefined,
             };
           });
 
