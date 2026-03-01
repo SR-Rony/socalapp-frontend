@@ -121,11 +121,6 @@ const menu: MenuItem[] = [
         href: "/dashboard/monietization/setting",
         icon: Settings,
       },
-      {
-        title: "Payments Request",
-        href: "/dashboard/monietization/payment",
-        icon: CreditCard,
-      }
     ],
   },
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
   UserPlus,
@@ -62,6 +62,7 @@ export default function Navbar() {
   
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
 
   // =============================
   // Safe username (first 2 words)
@@ -82,6 +83,15 @@ export default function Navbar() {
     router.push("/login");
   };
 
+
+  const hideLayout =
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/register") ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/profile") ||
+    pathname.startsWith("/feed");
+
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-white dark:bg-background">
       <div className="container mx-auto px-5">
@@ -93,7 +103,8 @@ export default function Navbar() {
           <div className="flex items-center gap-2 flex-1">
 
             {/* 🔥 Mobile Sidebar Trigger */}
-            <div className="lg:hidden">
+            {!hideLayout &&
+              <div className="lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button size="icon" variant="ghost">
@@ -113,7 +124,7 @@ export default function Navbar() {
                   </div>
                 </SheetContent>
               </Sheet>
-            </div>
+            </div>}
 
             {/* Logo */}
             <Link href="/" className="text-xl font-bold text-primary">

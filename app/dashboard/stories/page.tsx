@@ -117,6 +117,11 @@ export default function AdminStoriesPage() {
     }
   };
 
+
+  console.log("dashboard ",stories);
+  
+
+
   /* =======================
      UI
   ======================= */
@@ -202,10 +207,12 @@ export default function AdminStoriesPage() {
                     )}
 
                     {story.type === "video" && (
-                      <video
-                        src={story.media?.url}
-                        className="w-24 rounded"
-                        controls
+                      <SignedImage
+                        url={story.media?.thumbnailUrl || story.media?.url } // cache-busting
+                        keyPath={story.media?.key}
+                        provider={story.media?.provider}
+                        alt="story"
+                        className="w-10 h-9 object-cover"
                       />
                     )}
 
