@@ -67,7 +67,6 @@ export default function Post({
   onDelete,
   onUnsave,
   isSavedPage = false,
-  isGroupContext = false,
 }: PostProps) {
   const { user: me } = useAppSelector((state) => state.auth);
 

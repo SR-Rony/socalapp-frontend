@@ -5,16 +5,8 @@ import api from "@/lib/api";
 import type { Media } from "@/components/post/Post";
 import { PostData } from "@/components/post/types/post";
 
-interface FeedAuthor {
-  _id: string;
-  name: string;
-  username?: string;
-  avatar?: Media;
-  isMe?: boolean;
-}
-
 interface FeedItem {
-  data: any; // 🔥 allow mixed shape (post + groupPost)
+  data: any;
 }
 
 interface FeedResponse {
@@ -36,8 +28,10 @@ export function usePosts() {
         if (res.data?.success && Array.isArray(res.data.items)) {
           const mappedPosts: PostData[] = res.data.items.map((item) => {
             const post = item.data;
+            const isGroupPost = post.feedType === "groupPost";
 
-            const avatar: Media | undefined = post.author.avatar
+            // ✅ avatar normalize
+            const avatar: Media | undefined = post.author?.avatar
               ? {
                   type: "image",
                   url: post.author.avatar.url || "",
@@ -46,7 +40,42 @@ export function usePosts() {
                 }
               : undefined;
 
-            const isGroupPost = post.feedType === "groupPost";
+            // ✅ TEXT normalize
+            const content = isGroupPost ? post.caption : post.text;
+
+            // ✅ MEDIA normalize
+            let media: Media | undefined;
+
+            if (isGroupPost) {
+              if (post.images?.length) {
+                const img = post.images[0];
+                media = {
+                  type: "image",
+                  url: img.url,
+                  key: img.key,
+                  provider: img.provider,
+                };
+              } else if (post.video) {
+                media = {
+                  type: "video",
+                  url: post.video.url,
+                  key: post.video.key,
+                  provider: post.video.provider,
+                };
+              }
+            } else {
+              media = post.medias?.[0];
+            }
+
+            // ✅ COUNTS normalize (group + normal)
+            const likeCount =
+              post.likeCount ?? post.counts?.likeCount ?? 0;
+
+            const commentCount =
+              post.commentCount ?? post.counts?.commentCount ?? 0;
+
+            const shareCount =
+              post.shareCount ?? post.counts?.shareCount ?? 0;
 
             return {
               _id: post._id,
@@ -58,17 +87,18 @@ export function usePosts() {
                 avatar,
               },
 
-              content: post.text,
+              content,
               time: post.createdAt,
-              media: post.medias?.[0] || undefined,
+              media,
 
-              likeCount: post.likeCount ?? post.counts?.likeCount ?? 0,
-              commentCount: post.commentCount ?? post.counts?.commentCount ?? 0,
-              shareCount: post.shareCount ?? post.counts?.shareCount ?? 0,
-              isLiked: post.isLiked,
-              isShared: post.isShared,
+              likeCount,
+              commentCount,
+              shareCount,
 
-              // 🔥 NEW
+              isLiked: post.isLiked ?? false,
+              isShared: post.isShared ?? false,
+
+              // 🔥 group info
               isGroupPost,
               groupId: isGroupPost ? post.group?._id : undefined,
             };

@@ -31,6 +31,9 @@ import {
   Code,
   Award,
   ChevronDown,
+  Sparkles,
+  UserCheck,
+  UserPlus,
 } from "lucide-react";
 
 import {
@@ -101,10 +104,10 @@ const menu: MenuItem[] = [
     title: "Groups",
     icon: Users,
     children: [
-      { title: "Groups", href: "/groups", icon: Users },
-      { title: "Suggested For Groups", href: "/groups/for-you", icon: Users },
-      { title: "My Groups", href: "/groups/my", icon: User },
-      { title: "Create Groups", href: "/groups/create", icon: User },
+      { title: "Groups", href: "/groups", icon: Users }, 
+      { title: "Suggested For Groups", href: "/groups/for-you", icon: Sparkles },
+      { title: "My Groups", href: "/groups/my", icon: UserCheck },
+      { title: "Create Groups", href: "/groups/create", icon: UserPlus },
     ],
   },
   { title: "Events", icon: Flag, href: "/events" },

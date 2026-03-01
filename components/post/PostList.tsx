@@ -37,9 +37,6 @@ export default function PostList() {
   useEffect(() => {
     setPosts(apiPosts);
   }, [apiPosts]);
-
-
-  console.log('main feed post data',posts);
   
 
   // ✏️ EDIT

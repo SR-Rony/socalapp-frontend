@@ -28,6 +28,9 @@ export default function PostActions({
   const [loadingShare, setLoadingShare] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
+  console.log("post action",post);
+  
+
   useEffect(() => {
     setLiked(post.isLiked);
     setLikes(post.likeCount);
