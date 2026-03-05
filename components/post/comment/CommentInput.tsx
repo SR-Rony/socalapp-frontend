@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 type Props = {
   postId: string;
   parentId?: string;
+  isGroupPost:boolean;
   onAdd: (comment: any) => void;
 };
 
-export default function CommentInput({ postId, parentId, onAdd }: Props) {
+export default function CommentInput({ postId, parentId, onAdd,isGroupPost }: Props) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,9 +21,21 @@ export default function CommentInput({ postId, parentId, onAdd }: Props) {
 
     try {
       setLoading(true);
+      if(isGroupPost){
+        const res = await api.post(`/comment/${postId}/comments`, {
+        text,
+        parentId,
+        type:'groupPost'
+      });
+      if (res.data.ok) {
+        onAdd(res.data.comment);
+        setText("");
+      }
+      }
       const res = await api.post(`/comment/${postId}/comments`, {
         text,
         parentId,
+        type:'groupPost'
       });
 
       if (res.data.ok) {

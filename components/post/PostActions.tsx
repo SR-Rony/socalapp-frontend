@@ -4,9 +4,8 @@ import { MessageCircle, ThumbsUp, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import CommentModal from "./comment/CommentModal";
 import api from "@/lib/api";
-// import { PostData } from "./types/post.ts";
 import ShareModal from "./share/ShareModal";
-import { PostData } from "./types/post";
+import { PostData } from "./Post";
 
 type PostActionsProps = {
   post: PostData;
@@ -28,7 +27,9 @@ export default function PostActions({
   const [loadingShare, setLoadingShare] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  console.log("post action",post);
+console.log("post action",post);
+
+  
   
 
   useEffect(() => {
@@ -40,54 +41,58 @@ export default function PostActions({
 
   // ❤️ LIKE
   const handleLike = async () => {
-    if (loadingLike) return;
-    setLoadingLike(true);
+  if (loadingLike) return;
+  setLoadingLike(true);
 
-    const prevLiked = liked;
+  const prevLiked = liked;
+  const type = post.groupId || post.isGroupPost ? "groupPost" : "post";
 
-    // 🔥 optimistic UI
-    setLiked(!prevLiked);
-    setLikes((p) => (prevLiked ? p - 1 : p + 1));
+  // optimistic UI
+  setLiked(!prevLiked);
+  setLikes((p) => (prevLiked ? p - 1 : p + 1));
 
-    try {
-      if (prevLiked) {
-        await api.delete(`/posts/${post._id}/like`);
-      } else {
-        await api.post(`/posts/${post._id}/like`);
-      }
-    } catch (err) {
-      // ❌ rollback
-      setLiked(prevLiked);
-      setLikes((p) => (prevLiked ? p + 1 : p - 1));
-    } finally {
-      setLoadingLike(false);
+  try {
+    if (prevLiked) {
+      await api.delete(`/posts/${post._id}/like?type=${type}`);
+    } else {
+      await api.post(`/posts/${post._id}/like?type=${type}`);
     }
-  };
+  } catch (err) {
+    // rollback
+    setLiked(prevLiked);
+    setLikes((p) => (prevLiked ? p + 1 : p - 1));
+  } finally {
+    setLoadingLike(false);
+  }
+};
 
   const handleShareClick = () => {
     setShowShareModal(true);
   };
 
   // 🔁 SHARE
-  const handleConfirmShare = async () => {
-    if (loadingShare || shared) return;
+const handleConfirmShare = async () => {
+  if (loadingShare || shared) return;
 
-    setLoadingShare(true);
+  setLoadingShare(true);
 
-    // optimistic
-    setShared(true);
-    setShares((p) => p + 1);
+  const type = post.groupId || post.isGroupPost ? "groupPost" : "post";
+  
 
-    try {
-      await api.post(`/posts/${post._id}/share`);
-    } catch (err) {
-      setShared(false);
-      setShares((p) => p - 1);
-    } finally {
-      setLoadingShare(false);
-      setShowShareModal(false);
-    }
-  };
+  // optimistic
+  setShared(true);
+  setShares((p) => p + 1);
+
+  try {
+    await api.post(`/posts/${post._id}/share?type=${type}`);
+  } catch (err) {
+    setShared(false);
+    setShares((p) => p - 1);
+  } finally {
+    setLoadingShare(false);
+    setShowShareModal(false);
+  }
+};
 
 
 

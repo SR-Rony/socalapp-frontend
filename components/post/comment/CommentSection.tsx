@@ -10,6 +10,7 @@ export type Comment = {
   _id: string;
   text: string;
   postId: string;
+  isGroupPost:boolean;
   author: {
     _id: string;
     name: string;
@@ -22,6 +23,7 @@ export type Comment = {
 
 type Props = {
   postId: string;
+  isGroupPost:boolean;
 };
 
 type UserType = {
@@ -35,7 +37,7 @@ type UserType = {
   };
 };
 
-export default function CommentSection({ postId }: Props) {
+export default function CommentSection({ postId,isGroupPost }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -63,41 +65,46 @@ export default function CommentSection({ postId }: Props) {
   }, [cursor]);
 
   // 🔹 Fetch comments safely
-  const fetchComments = useCallback(async () => {
-    if (loadingRef.current || !hasMoreRef.current) return;
+const fetchComments = useCallback(async () => {
+  if (loadingRef.current || !hasMoreRef.current) return;
 
-    try {
-      loadingRef.current = true;
-      setLoading(true);
+  const type = isGroupPost ? "groupPost" : "post";
+  
 
-      const res = await api.get(`/comment/${postId}/comments`, {
-        params: { cursor: cursorRef.current },
+  try {
+    loadingRef.current = true;
+    setLoading(true);
+
+    const res = await api.get(`/comment/${postId}/comments`, {
+      params: {
+        cursor: cursorRef.current,
+        type,
+      },
+    });
+
+    if (res.data.ok) {
+      const items: Comment[] = res.data.items || [];
+
+      setComments((prev) => {
+        const newItems = items.filter(
+          (item) => !prev.some((p) => p._id === item._id)
+        );
+        return [...prev, ...newItems];
       });
 
-      if (res.data.ok) {
-        const items: Comment[] = res.data.items || [];
-
-        // ✅ Prevent duplicate IDs
-        setComments((prev) => {
-          const newItems = items.filter(
-            (item) => !prev.some((p) => p._id === item._id)
-          );
-          return [...prev, ...newItems];
-        });
-
-        const next = res.data.nextCursor || null;
-        setCursor(next);
-        cursorRef.current = next;
-        hasMoreRef.current = Boolean(next);
-        setHasMore(Boolean(next));
-      }
-    } catch (err) {
-      console.error("Failed to load comments", err);
-    } finally {
-      loadingRef.current = false;
-      setLoading(false);
+      const next = res.data.nextCursor || null;
+      setCursor(next);
+      cursorRef.current = next;
+      hasMoreRef.current = Boolean(next);
+      setHasMore(Boolean(next));
     }
-  }, [postId]);
+  } catch (err) {
+    console.error("Failed to load comments", err);
+  } finally {
+    loadingRef.current = false;
+    setLoading(false);
+  }
+}, [postId, isGroupPost]);
 
   // 🔹 Reset when post changes
   useEffect(() => {
@@ -160,7 +167,7 @@ export default function CommentSection({ postId }: Props) {
 
     {/* 🔥 Fixed Bottom Input */}
       <div className=" py-3">
-        <CommentInput postId={postId} onAdd={handleAddComment} />
+        <CommentInput isGroupPost = {isGroupPost} postId={postId} onAdd={handleAddComment} />
       </div>
 
       {/* 🔥 Scrollable Comment List */}

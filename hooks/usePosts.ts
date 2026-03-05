@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import type { Media } from "@/components/post/Post";
-import { PostData } from "@/components/post/types/post";
+import { PostData } from "@/components/post/Post";
 
 interface FeedItem {
   data: any;
@@ -24,6 +24,7 @@ export function usePosts() {
         const res = await api.get<FeedResponse>("/posts/feed", {
           params: { limit: 10 },
         });
+        
 
         if (res.data?.success && Array.isArray(res.data.items)) {
           const mappedPosts: PostData[] = res.data.items.map((item) => {
@@ -41,7 +42,7 @@ export function usePosts() {
               : undefined;
 
             // ✅ TEXT normalize
-            const content = isGroupPost ? post.caption : post.text;
+            const content = isGroupPost ? post.text : post.text;
 
             // ✅ MEDIA normalize
             let media: Media | undefined;

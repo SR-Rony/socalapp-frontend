@@ -343,11 +343,10 @@ const handleDeleteConfirm = async () => {
             ) : (
               posts.map((gp) => {
                 const mappedPost = mapGroupPostToPost(gp);
-
                 return (
                   <Post
                     key={mappedPost._id}
-                    isGroupContext={true}
+                    isGroupPost={true}
                     post={mappedPost}
                     onEdit={() => handleEdit(mappedPost)}
                     onDelete={(id) => setDeletingTarget({ id, type: "group" })}

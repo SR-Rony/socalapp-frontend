@@ -55,7 +55,7 @@ type PostProps = {
   onDelete?: (id: string) => void;
   onUnsave?: (id: string) => void;
   isSavedPage?: boolean;
-  isGroupContext?: boolean;
+  isGroupPost?: boolean;
 };
 
 /* -------------------------
@@ -67,10 +67,13 @@ export default function Post({
   onDelete,
   onUnsave,
   isSavedPage = false,
+  isGroupPost
 }: PostProps) {
   const { user: me } = useAppSelector((state) => state.auth);
 
   if (!post || !post.user) return null;
+  
+  
 
   /* -------------------------
      🔧 Normalize IDs (always string)
@@ -107,12 +110,14 @@ export default function Post({
   ------------------------- */
   const normalizedPost: PostData = {
     ...post,
+    isGroupPost,
     authorId,
     user: {
       ...post.user,
       userId,
     },
   };
+  
 
   /* -------------------------
      📂 Menu state

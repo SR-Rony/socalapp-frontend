@@ -20,6 +20,8 @@ type Props = {
 
 export default function CommentModal({ open, onClose, post }: Props) {
   
+  
+  
   return (
     <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
       <DialogContent className="max-w-2xl h-[95vh] p-0 flex flex-col">
@@ -77,7 +79,7 @@ export default function CommentModal({ open, onClose, post }: Props) {
 
           {/* 💬 Comments list */}
           <div className="flex-1 overflow-y-auto px-4">
-            <CommentSection postId={post._id} />
+            <CommentSection isGroupPost ={post.isGroupPost} postId={post._id} />
           </div>
         </div>
       </DialogContent>
