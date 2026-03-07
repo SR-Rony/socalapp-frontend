@@ -7,10 +7,12 @@ import CommentInput from "./CommentInput";
 export default function ReplySection({
   postId,
   parentId,
+  isGroupPost,
   replyCount,
   onClose,
 }: {
   postId: string;
+  isGroupPost:boolean;
   parentId: string;
   replyCount: number;
   onClose: () => void;
@@ -73,6 +75,7 @@ export default function ReplySection({
       {/* Reply Input */}
       <CommentInput
         postId={postId}
+        isGroupPost={isGroupPost}
         parentId={parentId}
         onAdd={(c) => setReplies((p) => [...p, c])}
       />

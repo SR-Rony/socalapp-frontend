@@ -14,12 +14,14 @@ import { SignedImage } from "@/components/common/SignedImage";
 export default function CommentItem({
   comment,
   currentUserId,
+  isGroupPost,
   onEdit,
   onDelete,
   onReport,
 }: {
   comment: any;
-   currentUserId: string; // ✅ string type
+   currentUserId: string;// ✅ string type
+   isGroupPost: boolean
   onEdit?: (comment: any) => void;
   onDelete?: (comment: any) => void;
   onReport?: (comment: any) => void;
@@ -28,6 +30,9 @@ export default function CommentItem({
   const hasReplies = comment.replyCount > 0;
   const isOwner = comment.author._id === currentUserId;
   const avatar = comment.author.avatar
+  
+
+  console.log('comment item ',comment);
   
   
 
@@ -121,6 +126,7 @@ export default function CommentItem({
         {showReplies && (
           <ReplySection
             parentId={comment._id}
+            isGroupPost = {isGroupPost}
             postId={comment.postId}
             replyCount={comment.replyCount}
             onClose={() => setShowReplies(false)}
