@@ -70,6 +70,7 @@ const fetchComments = useCallback(async () => {
 
   const type = isGroupPost ? "groupPost" : "post";
   
+  
 
   try {
     loadingRef.current = true;
@@ -175,6 +176,7 @@ const fetchComments = useCallback(async () => {
         {comments.map((c) => (
           <CommentItem
             key={c._id}
+            isGroupPost = {isGroupPost}
             comment={c}
             currentUserId={user?._id || ""}
             onEdit={handleEditComment}

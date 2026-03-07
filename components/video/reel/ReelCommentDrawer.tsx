@@ -61,7 +61,7 @@ export default function ReelCommentDrawer({ open, onClose, reel }: Props) {
 
         {/* COMMENT LIST */}
         <div className="flex-1 overflow-y-auto">
-          <CommentSection postId={reel._id} />
+          <CommentSection postId={reel._id} isGroupPost={false} />
         </div>
       </div>
     </div>

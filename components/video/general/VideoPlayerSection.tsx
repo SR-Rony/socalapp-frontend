@@ -217,7 +217,10 @@ export default function VideoPlayerSection({
 
       {/* 💬 Comment Section */}
       <div className="mt-6">
-        <CommentSection postId={video._id} />
+        <CommentSection
+          postId={video._id}
+          isGroupPost={false}
+        />
       </div>
 
       <ShareModal
