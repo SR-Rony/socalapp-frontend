@@ -26,10 +26,6 @@ export default function PostActions({
   const [loadingLike, setLoadingLike] = useState(false);
   const [loadingShare, setLoadingShare] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-
-console.log("post action",post);
-
-  
   
 
   useEffect(() => {
@@ -46,6 +42,7 @@ console.log("post action",post);
 
   const prevLiked = liked;
   const type = post.groupId || post.isGroupPost ? "groupPost" : "post";
+  
 
   // optimistic UI
   setLiked(!prevLiked);

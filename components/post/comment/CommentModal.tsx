@@ -10,7 +10,7 @@ import {
 import CommentSection from "./CommentSection";
 import { SignedImage } from "@/components/common/SignedImage";
 import PostMedia from "../PostMedia";
-import { PostData } from "../types/post";
+import { PostData } from "../Post";
 
 type Props = {
   open: boolean;
@@ -18,7 +18,9 @@ type Props = {
   post: PostData;
 };
 
-export default function CommentModal({ open, onClose, post }: Props) {
+export default function CommentModal({ open, onClose, post, }: Props) {
+  
+  const isGroupPost = post.isGroupPost || !!post.groupId
   
   
   
@@ -79,7 +81,7 @@ export default function CommentModal({ open, onClose, post }: Props) {
 
           {/* 💬 Comments list */}
           <div className="flex-1 overflow-y-auto px-4">
-            <CommentSection isGroupPost ={post.isGroupPost} postId={post._id} />
+            <CommentSection isGroupPost ={isGroupPost } postId={post._id} />
           </div>
         </div>
       </DialogContent>
